@@ -7,5 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.8.4",
+    "fs": "^0.0.1-security",
+    "xml-crypto": "^6.0.1",
+    "xmlbuilder2": "^3.1.1"
+  }
 }

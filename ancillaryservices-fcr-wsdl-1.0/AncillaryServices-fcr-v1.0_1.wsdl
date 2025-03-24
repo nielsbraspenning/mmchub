@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions name="AncillaryServices-FCR" targetNamespace="http://sys.svc.tennet.nl/AncillaryServices" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://sys.svc.tennet.nl/AncillaryServices" xmlns:tas="http://sys.svc.tennet.nl/AncillaryServices/v1" xmlns:header="http://sys.svc.tennet.nl/MMCHub/Header/v1" xmlns:tsm="http://tennet.eu/cdm/tennet/TennetService/Message/v2.0" xmlns:ead="urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsp="http://www.w3.org/ns/ws-policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:sp="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702">
+  <wsp:Policy wsu:Id="SigningSecurityPolicy">
+    <sp:SignedParts>
+      <sp:Body/>
+    </sp:SignedParts>
+  </wsp:Policy>
+  <wsp:Policy wsu:Id="EmptySecurityPolicy"/>
+  <wsp:Policy wsu:Id="BaseSecurityPolicy">
+    <sp:AsymmetricBinding>
+      <wsp:Policy>
+        <sp:InitiatorToken>
+          <wsp:Policy>
+            <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+              <wsp:Policy>
+                <sp:RequireKeyIdentifierReference/>
+                <sp:WssX509V3Token10/>
+              </wsp:Policy>
+            </sp:X509Token>
+          </wsp:Policy>
+        </sp:InitiatorToken>
+        <sp:RecipientToken>
+          <wsp:Policy>
+            <sp:X509Token sp:IncludeToken="http://docs.oasis-open.org/ws-sx/ws-securitypolicy/200702/IncludeToken/Never">
+              <wsp:Policy>
+                <sp:RequireKeyIdentifierReference/>
+                <sp:WssX509V3Token10/>
+              </wsp:Policy>
+            </sp:X509Token>
+          </wsp:Policy>
+        </sp:RecipientToken>
+        <sp:AlgorithmSuite>
+          <wsp:Policy>
+            <sp:Basic256Exn256/>
+          </wsp:Policy>
+        </sp:AlgorithmSuite>
+        <sp:Layout>
+          <wsp:Policy>
+            <sp:Lax/>
+          </wsp:Policy>
+        </sp:Layout>
+        <sp:OnlySignEntireHeadersAndBody/>
+      </wsp:Policy>
+    </sp:AsymmetricBinding>
+    <sp:Wss10>
+      <wsp:Policy>
+        <sp:MustSupportRefKeyIdentifier/>
+      </wsp:Policy>
+    </sp:Wss10>
+  </wsp:Policy>
+  <types>
+    <xsd:schema>
+      <xsd:import namespace="http://sys.svc.tennet.nl/AncillaryServices/v1" schemaLocation="AncillaryServices-fcr-v1.0.xsd"/>
+      <xsd:import namespace="http://sys.svc.tennet.nl/MMCHub/Header/v1" schemaLocation="Message-Addressing-v1.0.xsd"/>
+      <xsd:import namespace="http://tennet.eu/cdm/tennet/TennetService/Message/v2.0" schemaLocation="TennetService-v2.0b.xsd"/>
+      <xsd:import namespace="urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0" schemaLocation="iec62325-451-4-settlement.xsd"/>
+    </xsd:schema>
+  </types>
+  <message name="Header">
+    <part name="messageAddressing" element="header:MessageAddressing"/>
+  </message>
+  <message name="SendEnergyAccountRequest">
+    <part name="energyAccountRequest" element="ead:EnergyAccount_MarketDocument"/>
+  </message>
+  <message name="SendEnergyAccountResponse">
+    <part name="energyAccountResponse" element="tas:EnergyAccount_MarketDocumentResponse"/>
+  </message>
+  <message name="IsAliveRequest">
+    <part name="isAliveRequest" element="tsm:IsAliveRequestMessage"/>
+  </message>
+  <message name="IsAliveResponse">
+    <part name="isAliveResponse" element="tsm:IsAliveResponseMessage"/>
+  </message>
+  <portType name="SendEnergyAccountPortType">
+    <operation name="sendEnergyAccount">
+      <input message="tns:SendEnergyAccountRequest"/>
+      <output message="tns:SendEnergyAccountResponse"/>
+    </operation>
+  </portType>
+  <portType name="IsAlivePortType">
+    <operation name="isAlive">
+      <input message="tns:IsAliveRequest"/>
+      <output message="tns:IsAliveResponse"/>
+    </operation>
+  </portType>
+  <binding name="SendEnergyAccountBinding" type="tns:SendEnergyAccountPortType">
+    <wsp:PolicyReference URI="#BaseSecurityPolicy" required="false"/>
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="sendEnergyAccount">
+      <soap:operation soapAction="http://sys.svc.tennet.nl/AncillaryServices/sendEnergyAccount"/>
+      <input>
+        <soap:header message="tns:Header" part="messageAddressing" use="literal"/>
+        <soap:body use="literal"/>
+        <wsp:PolicyReference URI="#SigningSecurityPolicy" required="true"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+        <wsp:PolicyReference URI="#EmptySecurityPolicy" required="false"/>
+      </output>
+    </operation>
+  </binding>
+  <binding name="IsAliveBinding" type="tns:IsAlivePortType">
+    <wsp:PolicyReference URI="#BaseSecurityPolicy" required="false"/>
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="isAlive">
+      <soap:operation soapAction="http://sys.svc.tennet.nl/AncillaryServices/isAlive"/>
+      <input>
+        <soap:body use="literal"/>
+        <wsp:PolicyReference URI="#EmptySecurityPolicy" required="false"/>
+      </input>
+      <output>
+        <soap:body use="literal"/>
+        <wsp:PolicyReference URI="#EmptySecurityPolicy" required="false"/>
+      </output>
+    </operation>
+  </binding>
+  <service name="AncillaryServices">
+    <port binding="tns:SendEnergyAccountBinding" name="SendEnergyAccountPort">
+      <soap:address location="https://sys.svc.tennet.nl/AncillaryServices/EnergyAccount/v1"/>
+    </port>
+    <port binding="tns:IsAliveBinding" name="IsAlivePort">
+      <soap:address location="https://sys.svc.tennet.nl/AncillaryServices/IsAlive/v1"/>
+    </port>
+  </service>
+</definitions>
