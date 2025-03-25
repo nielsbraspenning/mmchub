@@ -27,7 +27,9 @@ const privateKey = fs.readFileSync('./sign-cert/s-mimi-staging.key', 'utf8');
 const certificate = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
 
 // Nieuwe endpoint & namespaces volgens de update WSDL
-const endpoint = 'https://sys.acc.svc.tennet.nl/AncillaryServices/IsAlive/v1.0';  // Pas dit aan!
+const endpoint = 'http://localhost:8081/AncillaryServices/IsAlive/v1.0';
+
+//const endpoint = 'https://sys.acc.svc.tennet.nl/AncillaryServices/IsAlive/v1.0';  // Pas dit aan!
 const namespace = 'http://sys.svc.tennet.nl/AncillaryServices/v1'; // Nieuw namespace
 
 async function sendIsAlive() {
