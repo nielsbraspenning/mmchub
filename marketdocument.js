@@ -89,6 +89,7 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
 
 
   const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+ // const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
@@ -222,7 +223,7 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
 
     // ✅ SOAP Body
     .ele('soapenv:Body', { 'wsu:Id': 'Body' })
-    //  .import(bodyXmlBuilder)
+      .import(bodyXmlBuilder)
     .up()
   .up();
 }
@@ -269,8 +270,15 @@ async function sendEnergyAccount() {
       </wsse:SecurityTokenReference>`
   };
 
-  sig.computeSignature(unsignedXml);
-  const signedXml = sig.getSignedXml();
+ //sig.computeSignature(unsignedXml);
+ // const signedXml = sig.getSignedXml();
+ sig.computeSignature(unsignedXml, {
+  location: {
+    reference: "//*[local-name(.)='Security']",
+    action: 'append'
+  }
+});
+const signedXml = sig.getSignedXml();
   console.log('Signed SOAP XML:\n', signedXml);
 
 
