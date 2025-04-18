@@ -88,28 +88,7 @@ async function sendIsAlive() {
 //
   console.log('Signed SOAP XML:\n', signedXml);
 
-  // 3. Verstuur het SOAP bericht via axios naar NGINX ➡️ TenneT
-//  try {
-//    const response = await axios.post(endpoint, signedXml, {
-//      headers: {
-//        'Content-Type': 'text/xml',
-//        'SOAPAction': 'http://sys.svc.tennet.nl/AncillaryServices/isAlive'
-//      },
-//      httpsAgent: new (require('https').Agent)({
-//        rejectUnauthorized: false // Alleen voor testen!
-//      })
-//    });
 
-//    console.log('Raw Response:\n', response.data);
-//    handleResponse(response.data);
-
-//  } catch (error) {
-//    console.error('HTTP Error:', error.message);
-//    if (error.response) {
-//      console.error('HTTP Response Data:', error.response.data);
-//     handleResponse(error.response.data);
-//    }
-//  }
   try {
     const response = await axios.post(endpoint, signedXml, {
       headers: {
@@ -157,4 +136,5 @@ function handleResponse(xmlResponse) {
   }
 }
 
+//send every now and then
 sendIsAlive();
