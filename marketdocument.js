@@ -167,27 +167,65 @@ function buildEnergyAccountXML(params) {
 
 
 // Bouw volledige SOAP-envelope
+//function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
+//    return create({ version: '1.0', encoding: 'UTF-8' })
+//      .ele('soapenv:Envelope', {
+//        'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
+//        'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
+//        'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+//        'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
+//      })
+//        .ele('soapenv:Header')
+//          .ele('wsse:Security', { 'soapenv:mustUnderstand': '1' })
+//            .ele('wsse:BinarySecurityToken', {
+//              EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
+//              ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
+//              'wsu:Id': 'X509Token'
+//            })
+//            .txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''))
+//          .up().up().up()
+//        .ele('soapenv:Body', { 'wsu:Id': 'Body' })
+//          .import(bodyXmlBuilder)
+//        .up().up();
+//  }
+
 function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
-    return create({ version: '1.0', encoding: 'UTF-8' })
-      .ele('soapenv:Envelope', {
-        'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-        'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
-        'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-        'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
-      })
-        .ele('soapenv:Header')
-          .ele('wsse:Security', { 'soapenv:mustUnderstand': '1' })
-            .ele('wsse:BinarySecurityToken', {
-              EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
-              ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
-              'wsu:Id': 'X509Token'
-            })
-            .txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''))
-          .up().up().up()
-        .ele('soapenv:Body', { 'wsu:Id': 'Body' })
-          .import(bodyXmlBuilder)
-        .up().up();
-  }
+  const uuid = 'uuid-' + Math.random().toString(36).substring(2, 15);
+  const nowIso = new Date().toISOString();
+
+  return create({ version: '1.0', encoding: 'UTF-8' })
+    .ele('soapenv:Envelope', {
+      'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
+      'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
+      'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+      'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
+    })
+    .ele('soapenv:Header')
+      // ✅ Security Header
+      .ele('wsse:Security', { 'soapenv:mustUnderstand': '1' })
+        .ele('wsse:BinarySecurityToken', {
+          EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
+          ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
+          'wsu:Id': 'X509Token'
+        })
+        .txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''))
+      .up().up()
+
+      // ✅ Message Header zoals TenneT verwacht
+      .ele('hub:MessageHeader')
+        .ele('hub:Sender').txt('8719333027500').up()
+        .ele('hub:Receiver').txt('9876543210987').up()
+        .ele('hub:MessageID').txt(uuid).up()
+        .ele('hub:Timestamp').txt(nowIso).up()
+      .up()
+    .up() // end Header
+
+    // ✅ SOAP Body
+    .ele('soapenv:Body', { 'wsu:Id': 'Body' })
+      .import(bodyXmlBuilder)
+    .up()
+  .up();
+}
   
 
 
