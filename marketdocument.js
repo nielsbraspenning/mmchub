@@ -199,10 +199,10 @@ async function sendEnergyAccount() {
     revisionNumber: 1,                                        //bij updates moet dit veranderen
     senderId: '1234567890123',
     receiverId: '9876543210987',
-    createdDateTime: '2025-02-30T12:00:00',                   //moment waarop document gegenereerd is, lokale tijd
+    createdDateTime: '2025-04-18T12:50:00',                   //moment waarop document gegenereerd is, lokale tijd
     sampleInterval : 1,                                       //1
-    periodStart: '2025-01-10T00:00:00',                       //start van fcr blokken, lokale tijd
-    periodEnd: '2025-01-10T08:00:00',                         //einde van fcr blokken, lokale tijd
+    periodStart: '2025-04-17T00:00:00',                       //start van fcr blokken, lokale tijd
+    periodEnd: '2025-04-17T04:00:00',                         //einde van fcr blokken, lokale tijd
     timeSeriesId: 'TS-20250330-01',
     product: '8716867000016',
     marketEvaluationPointId: '123456789012345678'
