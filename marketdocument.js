@@ -222,7 +222,7 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
 
     // ✅ SOAP Body
     .ele('soapenv:Body', { 'wsu:Id': 'Body' })
-      .import(bodyXmlBuilder)
+    //  .import(bodyXmlBuilder)
     .up()
   .up();
 }
