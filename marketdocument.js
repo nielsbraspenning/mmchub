@@ -189,8 +189,10 @@ function buildEnergyAccountXML(params) {
 
   doc.ele('mRID').txt(mRID).up();
   doc.ele('revisionNumber').txt(revisionNumber).up();
-  doc.ele('type').txt('A45').up();
-  doc.ele('docStatus').txt('A07').up();
+  doc.ele('type').txt('A45').up()
+  doc.ele('docStatus')
+    .ele('value').txt('A07').up()
+  .up()
   doc.ele('process.processType').txt('A28').up();
   doc.ele('process.classificationType').txt('A02').up();
   doc.ele('sender_MarketParticipant.mRID', { codingScheme: 'A01' }).txt(senderId).up();
