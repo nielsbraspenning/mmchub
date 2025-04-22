@@ -176,7 +176,7 @@ function buildEnergyAccountXML(params) {
     timeSeriesId, product, marketEvaluationPointId, sampleInterval
   } = params;
 
-  const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm[Z]');
+  const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
   const periodStartUtc = moment.tz(periodStart, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm[Z]');
   const periodEndUtc = moment.tz(periodEnd, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm[Z]');
 
@@ -214,15 +214,31 @@ function buildEnergyAccountXML(params) {
   ts.ele('area_Domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
   ts.ele('measure_Unit.name').txt('MAW').up();
   ts.ele('currency_Unit.name').txt('EUR').up();
-  ts.ele('marketEvaluationPoint.mRID').txt(marketEvaluationPointId).up();
+  ts.ele('marketEvaluationPoint.mRID', { codingScheme: 'A01'}).txt(marketEvaluationPointId).up();
+
+  const period = ts.ele('Period');
+
+  period.ele('timeInterval')
+      .ele('start').txt(periodStartUtc).up()
+      .ele('end').txt(periodEndUtc).up();
 
   points.forEach(p => {
-    ts.ele('Point')
+    period.ele('Point')
         .ele('in_position').txt(p.position).up()
         .ele('in_Quantity.quantity').txt(p.in).up()
         .ele('out_Quantity.quantity').txt(p.out).up()
     .up();
   });
+
+
+
+  //points.forEach(p => {
+  //  ts.ele('Point')
+  //      .ele('in_position').txt(p.position).up()
+  //      .ele('in_Quantity.quantity').txt(p.in).up()
+  //      .ele('out_Quantity.quantity').txt(p.out).up()
+  //  .up();
+  //});
 
   return doc;  // Return the XMLBuilder instance
 }
