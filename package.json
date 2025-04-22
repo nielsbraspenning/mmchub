@@ -12,6 +12,7 @@
     "axios": "^1.8.4",
     "fs": "^0.0.1-security",
     "moment-timezone": "^0.5.48",
+    "uuid": "^11.1.0",
     "xml-crypto": "^6.0.1",
     "xml2js": "^0.6.2",
     "xmlbuilder2": "^3.1.1"

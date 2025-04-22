@@ -170,7 +170,7 @@ function buildEnergyAccountXML(params) {
 }
 
 function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
-  const uuid = 'uuid-' + Math.random().toString(36).substring(2, 15);
+  //const uuid = 'uuid-' + Math.random().toString(36).substring(2, 15);
 
   // Create root document
   const doc = create({ version: '1.0', encoding: 'UTF-8' });
@@ -192,12 +192,12 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
     'wsu:Id': 'X509Token'
   }).txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''));
 
-  const messageHeader = header.ele('hub:MessageHeader');
-  messageHeader.ele('hub:TechnicalMessageID').txt(uuid);
-  messageHeader.ele('hub:CorrelationID').txt(uuid);
-  messageHeader.ele('hub:SenderID').txt('8719333027500');
-  messageHeader.ele('hub:ReceiverID').txt('9876543210987');
-  messageHeader.ele('hub:CarrierID').txt('DEFAULT');
+  const messageHeader = header.ele('hub:MessageAddressing');
+  messageHeader.ele('hub:technicalMessageID').txt(uuid);
+  messageHeader.ele('hub:correlationID').txt(uuid);
+  messageHeader.ele('hub:senderID').txt('8719333027500');
+  messageHeader.ele('hub:receiverID').txt('8716867999983');
+  messageHeader.ele('hub:carrierID').txt('1234567891234');
   messageHeader.ele('hub:ContentType').txt('application/energyaccount+xml');
 
   const body = envelope.ele('soapenv:Body', { 'wsu:Id': 'Body' });
