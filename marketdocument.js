@@ -176,9 +176,9 @@ function buildEnergyAccountXML(params) {
     timeSeriesId, product, marketEvaluationPointId, sampleInterval
   } = params;
 
-  const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format();
-  const periodStartUtc = moment.tz(periodStart, 'Europe/Amsterdam').utc().format();
-  const periodEndUtc = moment.tz(periodEnd, 'Europe/Amsterdam').utc().format();
+  const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm[Z]');
+  const periodStartUtc = moment.tz(periodStart, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm[Z]');
+  const periodEndUtc = moment.tz(periodEnd, 'Europe/Amsterdam').utc().format('YYYY-MM-DDTHH:mm[Z]');
 
   const points = generatePoints(periodStart, periodEnd, sampleInterval);
 
