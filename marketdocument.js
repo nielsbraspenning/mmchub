@@ -88,8 +88,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
-  const numPoints = (duurInUren * 60 * 60) / intervalSeconds
- // const numPoints = 10
+ // const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+  const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
@@ -214,10 +214,12 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
 
       // ✅ Message Header zoals TenneT verwacht
       .ele('hub:MessageHeader')
-        .ele('hub:Sender').txt('8719333027500').up()
-        .ele('hub:Receiver').txt('9876543210987').up()
-        .ele('hub:MessageID').txt(uuid).up()
-        .ele('hub:Timestamp').txt(nowIso).up()
+        .ele('hub:TechnicalMessageID').txt(uuid).up()
+        .ele('hub:CorrelationID').txt(uuid).up()
+        .ele('hub:SenderID').txt('8719333027500').up()
+        .ele('hub:ReceiverID').txt('9876543210987').up()
+        .ele('hub:CarrierID').txt('DEFAULT').up()
+        .ele('hub:ContentType').txt('application/energyaccount+xml').up()
       .up()
     .up() // end Header
 
