@@ -112,23 +112,79 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   return points;
 }
 
+//function buildEnergyAccountXML(params) {
+//  const {
+//    mRID, revisionNumber, senderId, receiverId,
+//    createdDateTime, periodStart, periodEnd,
+//    timeSeriesId, product, marketEvaluationPointId,sampleInterval
+//  } = params;
+//
+//  const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format();
+//  const periodStartUtc = moment.tz(periodStart, 'Europe/Amsterdam').utc().format();
+//  const periodEndUtc = moment.tz(periodEnd, 'Europe/Amsterdam').utc().format();
+//
+//  const namespace = 'http://sys.svc.tennet.nl/AncillaryServices/';
+//  const points = generatePoints(periodStart, periodEnd, sampleInterval);
+//
+//  const root = create().ele('hub:sendEnergyAccount', { xmlns: namespace });
+//  const doc = root.ele('EnergyAccount_MarketDocument', {
+//    xmlns: 'urn:iec62325.351:tc57wg16:451-4:energyaccountingdocument:1:0'
+//  });
+//
+//  doc.ele('mRID').txt(mRID).up();
+//  doc.ele('revisionNumber').txt(revisionNumber).up();
+//  doc.ele('type').txt('A45').up();
+//  doc.ele('docStatus').txt('A07').up();
+//  doc.ele('process.processType').txt('A28').up();
+//  doc.ele('process.classificationType').txt('A02').up();
+//  doc.ele('sender_MarketParticipant.mRID', { codingScheme: 'A01' }).txt(senderId).up();
+//  doc.ele('sender_MarketParticipant.marketRole.type').txt('A12').up();
+//  doc.ele('receiver_MarketParticipant.mRID', { codingScheme: 'A01' }).txt(receiverId).up();
+//  doc.ele('receiver_MarketParticipant.marketRole.type').txt('A04').up();
+//  doc.ele('createdDateTime').txt(createdDateTimeUtc).up();
+//  doc.ele('period.timeInterval')
+//    .ele('start').txt(periodStartUtc).up()
+//    .ele('end').txt(periodEndUtc).up()
+//  .up();
+//  doc.ele('domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
+//
+//  const ts = doc.ele('TimeSeries');
+//  ts.ele('mRID').txt(timeSeriesId).up();
+//  ts.ele('businessType').txt('A11').up();
+//  ts.ele('product').txt(product).up();
+//  ts.ele('objectAggregation').txt('A02').up();
+//  ts.ele('area_Domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
+//  ts.ele('measure_Unit.name').txt('MAW').up();
+//  ts.ele('currency_Unit.name').txt('EUR').up();
+//  ts.ele('marketEvaluationPoint.mRID').txt(marketEvaluationPointId).up();
+//
+//  points.forEach(p => {
+//    ts.ele('Point')
+//        .ele('in_position').txt(p.position).up()
+//      .ele('in_Quantity.quantity').txt(p.in).up()
+//      .ele('out_Quantity.quantity').txt(p.out).up()
+//    .up();
+//  });
+//
+//  return root; // XMLBuilder instance (geen .end())
+//}
+
 function buildEnergyAccountXML(params) {
   const {
     mRID, revisionNumber, senderId, receiverId,
     createdDateTime, periodStart, periodEnd,
-    timeSeriesId, product, marketEvaluationPointId,sampleInterval
+    timeSeriesId, product, marketEvaluationPointId, sampleInterval
   } = params;
 
   const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format();
   const periodStartUtc = moment.tz(periodStart, 'Europe/Amsterdam').utc().format();
   const periodEndUtc = moment.tz(periodEnd, 'Europe/Amsterdam').utc().format();
 
-  const namespace = 'http://sys.svc.tennet.nl/AncillaryServices/';
   const points = generatePoints(periodStart, periodEnd, sampleInterval);
 
-  const root = create().ele('hub:sendEnergyAccount', { xmlns: namespace });
-  const doc = root.ele('EnergyAccount_MarketDocument', {
-    xmlns: 'urn:iec62325.351:tc57wg16:451-4:energyaccountingdocument:1:0'
+  // ⬇️ Directly start with EnergyAccount_MarketDocument as root
+  const doc = create().ele('EnergyAccount_MarketDocument', {
+    xmlns: 'urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0'
   });
 
   doc.ele('mRID').txt(mRID).up();
@@ -161,13 +217,14 @@ function buildEnergyAccountXML(params) {
   points.forEach(p => {
     ts.ele('Point')
         .ele('in_position').txt(p.position).up()
-      .ele('in_Quantity.quantity').txt(p.in).up()
-      .ele('out_Quantity.quantity').txt(p.out).up()
+        .ele('in_Quantity.quantity').txt(p.in).up()
+        .ele('out_Quantity.quantity').txt(p.out).up()
     .up();
   });
 
-  return root; // XMLBuilder instance (geen .end())
+  return doc;  // Return the XMLBuilder instance
 }
+
 
 function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   //const uuid = 'uuid-' + Math.random().toString(36).substring(2, 15);
