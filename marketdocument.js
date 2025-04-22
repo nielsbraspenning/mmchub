@@ -4,6 +4,9 @@ const { SignedXml } = require('xml-crypto');
 const axios = require('axios');
 const fs = require('fs');
 const moment = require('moment-timezone');
+const { v4: uuidv4 } = require('uuid');
+const uuid = uuidv4();
+
 
 
 //opmerkingen begin
@@ -88,8 +91,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
- // const numPoints = (duurInUren * 60 * 60) / intervalSeconds
-  const numPoints = 10
+  const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+ // const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
@@ -166,70 +169,43 @@ function buildEnergyAccountXML(params) {
   return root; // XMLBuilder instance (geen .end())
 }
 
-
-// Bouw volledige SOAP-envelope
-//function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
-//    return create({ version: '1.0', encoding: 'UTF-8' })
-//      .ele('soapenv:Envelope', {
-//        'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-//        'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
-//        'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-//        'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
-//      })
-//        .ele('soapenv:Header')
-//          .ele('wsse:Security', { 'soapenv:mustUnderstand': '1' })
-//            .ele('wsse:BinarySecurityToken', {
-//              EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
-//              ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
-//              'wsu:Id': 'X509Token'
-//            })
-//            .txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''))
-//          .up().up().up()
-//        .ele('soapenv:Body', { 'wsu:Id': 'Body' })
-//          .import(bodyXmlBuilder)
-//        .up().up();
-//  }
-
 function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   const uuid = 'uuid-' + Math.random().toString(36).substring(2, 15);
-  const nowIso = new Date().toISOString();
 
-  return create({ version: '1.0', encoding: 'UTF-8' })
-    .ele('soapenv:Envelope', {
-      'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-      'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
-      'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-      'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
-    })
-    .ele('soapenv:Header')
-      // ✅ Security Header
-      .ele('wsse:Security', { 'soapenv:mustUnderstand': '1' })
-        .ele('wsse:BinarySecurityToken', {
-          EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
-          ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
-          'wsu:Id': 'X509Token'
-        })
-        .txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''))
-      .up().up()
+  // Create root document
+  const doc = create({ version: '1.0', encoding: 'UTF-8' });
 
-      // ✅ Message Header zoals TenneT verwacht
-      .ele('hub:MessageHeader')
-        .ele('hub:TechnicalMessageID').txt(uuid).up()
-        .ele('hub:CorrelationID').txt(uuid).up()
-        .ele('hub:SenderID').txt('8719333027500').up()
-        .ele('hub:ReceiverID').txt('9876543210987').up()
-        .ele('hub:CarrierID').txt('DEFAULT').up()
-        .ele('hub:ContentType').txt('application/energyaccount+xml').up()
-      .up()
-    .up() // end Header
+  // Build Envelope
+  const envelope = doc.ele('soapenv:Envelope', {
+    'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
+    'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
+    'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+    'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
+  });
 
-    // ✅ SOAP Body
-    .ele('soapenv:Body', { 'wsu:Id': 'Body' })
-      .import(bodyXmlBuilder)
-    .up()
-  .up();
+  const header = envelope.ele('soapenv:Header');
+
+  const security = header.ele('wsse:Security', { 'soapenv:mustUnderstand': '1' });
+  security.ele('wsse:BinarySecurityToken', {
+    EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
+    ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
+    'wsu:Id': 'X509Token'
+  }).txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''));
+
+  const messageHeader = header.ele('hub:MessageHeader');
+  messageHeader.ele('hub:TechnicalMessageID').txt(uuid);
+  messageHeader.ele('hub:CorrelationID').txt(uuid);
+  messageHeader.ele('hub:SenderID').txt('8719333027500');
+  messageHeader.ele('hub:ReceiverID').txt('9876543210987');
+  messageHeader.ele('hub:CarrierID').txt('DEFAULT');
+  messageHeader.ele('hub:ContentType').txt('application/energyaccount+xml');
+
+  const body = envelope.ele('soapenv:Body', { 'wsu:Id': 'Body' });
+  body.import(bodyXmlBuilder);
+
+  // ✅ Now call .end() on the root document
+  return doc.end({ prettyPrint: true });
 }
-  
 
 
 
@@ -249,8 +225,8 @@ async function sendEnergyAccount() {
     marketEvaluationPointId: '123456789012345678'
   });
 
-  const unsignedSoapBuilder = buildUnsignedSOAP(bodyXmlBuilder, certificate);
-  const unsignedXml = unsignedSoapBuilder.end({ prettyPrint: true });
+  const unsignedXml = buildUnsignedSOAP(bodyXmlBuilder, certificate);
+  //const unsignedXml = unsignedSoapBuilder.end({ prettyPrint: true });
 
   const sig = new SignedXml({
     privateKey,
