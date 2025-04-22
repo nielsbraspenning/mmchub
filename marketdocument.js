@@ -91,8 +91,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
-//  const numPoints = (duurInUren * 60 * 60) / intervalSeconds
- const numPoints = 10
+ const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+// const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
