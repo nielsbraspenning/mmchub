@@ -227,7 +227,7 @@ function buildEnergyAccountXML(params) {
 
   points.forEach(p => {
     period.ele('Point')
-        .ele('in_position').txt(p.position).up()
+        .ele('position').txt(p.position).up()
         .ele('in_Quantity.quantity').txt(p.in).up()
         .ele('out_Quantity.quantity').txt(p.out).up()
     .up();
