@@ -192,13 +192,13 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
     'wsu:Id': 'X509Token'
   }).txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''));
 
-  const messageHeader = header.ele('hub:MessageAddressing');
-  messageHeader.ele('hub:technicalMessageID').txt(uuid);
-  messageHeader.ele('hub:correlationID').txt(uuid);
-  messageHeader.ele('hub:senderID').txt('8719333027500');
-  messageHeader.ele('hub:receiverID').txt('8716867999983');
-  messageHeader.ele('hub:carrierID').txt('1234567891234');
-  messageHeader.ele('hub:ContentType').txt('application/energyaccount+xml');
+  const messageHeader = header.ele('head:MessageAddressing');
+  messageHeader.ele('head:technicalMessageID').txt(uuid);
+  messageHeader.ele('head:correlationID').txt(uuid);
+  messageHeader.ele('head:senderID').txt('8719333027500');
+  messageHeader.ele('head:receiverID').txt('8716867999983');
+  messageHeader.ele('head:carrierID').txt('1234567891234');
+  messageHeader.ele('head:ContentType').txt('application/energyaccount+xml');
 
   const body = envelope.ele('soapenv:Body', { 'wsu:Id': 'Body' });
   body.import(bodyXmlBuilder);
