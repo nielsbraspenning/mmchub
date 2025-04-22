@@ -204,7 +204,7 @@ function buildEnergyAccountXML(params) {
     .ele('start').txt(periodStartUtc).up()
     .ele('end').txt(periodEndUtc).up()
   .up();
-  doc.ele('domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
+  //doc.ele('domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
 
   const ts = doc.ele('TimeSeries');
   ts.ele('mRID').txt(timeSeriesId).up();
@@ -214,13 +214,16 @@ function buildEnergyAccountXML(params) {
   ts.ele('area_Domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
   ts.ele('measure_Unit.name').txt('MAW').up();
   ts.ele('currency_Unit.name').txt('EUR').up();
-  ts.ele('marketEvaluationPoint.mRID', { codingScheme: 'A01'}).txt(marketEvaluationPointId).up();
+  ts.ele('marketEvaluationPoint.mRID', { codingScheme: 'A01'}).txt(marketEvaluationPointId).up();     //checking coding scheme
 
   const period = ts.ele('Period');
 
   period.ele('timeInterval')
       .ele('start').txt(periodStartUtc).up()
-      .ele('end').txt(periodEndUtc).up();
+      .ele('end').txt(periodEndUtc).up()
+  .up()
+
+  period.ele('resolution').txt('PT' +  sampleInterval + 'S').up()
 
   points.forEach(p => {
     period.ele('Point')
