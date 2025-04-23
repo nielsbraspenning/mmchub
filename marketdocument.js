@@ -92,17 +92,19 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
 
 
  const numPoints = (duurInUren * 60 * 60) / intervalSeconds
-// const numPoints = 10
+ //const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
-    const raw = (Math.random() * 2 - 1) * 1_000_000;
+   //const raw = (Math.random() * 2 - 1) * 1_000_000;
+    const raw = Math.random() * 999.999999;
+    const formatNumber = (num) => Math.abs(num).toFixed(6);
   
     const point = {
       position: i,
    //  timestamp: currentUTC.toISO(),
-      out: raw >= 0 ? raw.toFixed(6) : "0.000000",
-      in: raw < 0 ? Math.abs(raw).toFixed(6) : "0.000000"
+      out: raw >= 0 ? formatNumber(raw) : "0.000000",
+      in: raw < 0 ?  formatNumber(raw)  : "0.000000"
     };
   
     points.push(point);
@@ -112,62 +114,6 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   return points;
 }
 
-//function buildEnergyAccountXML(params) {
-//  const {
-//    mRID, revisionNumber, senderId, receiverId,
-//    createdDateTime, periodStart, periodEnd,
-//    timeSeriesId, product, marketEvaluationPointId,sampleInterval
-//  } = params;
-//
-//  const createdDateTimeUtc = moment.tz(createdDateTime, 'Europe/Amsterdam').utc().format();
-//  const periodStartUtc = moment.tz(periodStart, 'Europe/Amsterdam').utc().format();
-//  const periodEndUtc = moment.tz(periodEnd, 'Europe/Amsterdam').utc().format();
-//
-//  const namespace = 'http://sys.svc.tennet.nl/AncillaryServices/';
-//  const points = generatePoints(periodStart, periodEnd, sampleInterval);
-//
-//  const root = create().ele('hub:sendEnergyAccount', { xmlns: namespace });
-//  const doc = root.ele('EnergyAccount_MarketDocument', {
-//    xmlns: 'urn:iec62325.351:tc57wg16:451-4:energyaccountingdocument:1:0'
-//  });
-//
-//  doc.ele('mRID').txt(mRID).up();
-//  doc.ele('revisionNumber').txt(revisionNumber).up();
-//  doc.ele('type').txt('A45').up();
-//  doc.ele('docStatus').txt('A07').up();
-//  doc.ele('process.processType').txt('A28').up();
-//  doc.ele('process.classificationType').txt('A02').up();
-//  doc.ele('sender_MarketParticipant.mRID', { codingScheme: 'A01' }).txt(senderId).up();
-//  doc.ele('sender_MarketParticipant.marketRole.type').txt('A12').up();
-//  doc.ele('receiver_MarketParticipant.mRID', { codingScheme: 'A01' }).txt(receiverId).up();
-//  doc.ele('receiver_MarketParticipant.marketRole.type').txt('A04').up();
-//  doc.ele('createdDateTime').txt(createdDateTimeUtc).up();
-//  doc.ele('period.timeInterval')
-//    .ele('start').txt(periodStartUtc).up()
-//    .ele('end').txt(periodEndUtc).up()
-//  .up();
-//  doc.ele('domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
-//
-//  const ts = doc.ele('TimeSeries');
-//  ts.ele('mRID').txt(timeSeriesId).up();
-//  ts.ele('businessType').txt('A11').up();
-//  ts.ele('product').txt(product).up();
-//  ts.ele('objectAggregation').txt('A02').up();
-//  ts.ele('area_Domain.mRID', { codingScheme: 'A01' }).txt('10YNL----------L').up();
-//  ts.ele('measure_Unit.name').txt('MAW').up();
-//  ts.ele('currency_Unit.name').txt('EUR').up();
-//  ts.ele('marketEvaluationPoint.mRID').txt(marketEvaluationPointId).up();
-//
-//  points.forEach(p => {
-//    ts.ele('Point')
-//        .ele('in_position').txt(p.position).up()
-//      .ele('in_Quantity.quantity').txt(p.in).up()
-//      .ele('out_Quantity.quantity').txt(p.out).up()
-//    .up();
-//  });
-//
-//  return root; // XMLBuilder instance (geen .end())
-//}
 
 function buildEnergyAccountXML(params) {
   const {
@@ -277,8 +223,8 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   messageHeader.ele('head:correlationId').txt(uuid);
   messageHeader.ele('head:senderId').txt('8719333027500');
   messageHeader.ele('head:receiverId').txt('8716867999983');
-  messageHeader.ele('head:carrierId').txt('1234567891234');
-  messageHeader.ele('head:contentType').txt('application/energyaccount+xml');
+  messageHeader.ele('head:carrierId').txt('8719333027500');
+  messageHeader.ele('head:contentType').txt('urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0');
 
   const body = envelope.ele('soapenv:Body', { 'wsu:Id': 'Body' });
   body.import(bodyXmlBuilder);
@@ -292,17 +238,17 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
 
 async function sendEnergyAccount() {
   const bodyXmlBuilder = buildEnergyAccountXML({
-    mRID: 'DOC-FCR-20250330-0001',                            //blijf gelijk
+    mRID: 'DOC-FCR-20250340-0001',                            //blijf gelijk
     revisionNumber: 1,                                        //bij updates moet dit veranderen
-    senderId: '1234567890123',
-    receiverId: '9876543210987',
-    createdDateTime: '2025-04-18T12:50:00',                   //moment waarop document gegenereerd is, lokale tijd
+    senderId: '8719333027500',                                //covolt ean
+    receiverId: '8716867999983',
+    createdDateTime: '2025-04-23T09:50:00',                   //moment waarop document gegenereerd is, lokale tijd
     sampleInterval : 1,                                       //1
-    periodStart: '2025-04-17T00:00:00',                       //start van fcr blokken, lokale tijd
-    periodEnd: '2025-04-17T04:00:00',                         //einde van fcr blokken, lokale tijd
-    timeSeriesId: 'TS-20250330-01',
+    periodStart: '2025-04-22T00:00:00',                       //start van fcr blokken, lokale tijd
+    periodEnd: '2025-04-22T04:00:00',                         //einde van fcr blokken, lokale tijd
+    timeSeriesId: 'TS-20250340-01',
     product: '8716867000016',
-    marketEvaluationPointId: '123456789012345678'
+    marketEvaluationPointId: '871687910000500037'
   });
 
   const unsignedXml = buildUnsignedSOAP(bodyXmlBuilder, certificate);
