@@ -224,7 +224,7 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   messageHeader.ele('head:senderId').txt('8719333027500');
   messageHeader.ele('head:receiverId').txt('8716867999983');
   messageHeader.ele('head:carrierId').txt('8719333027500');
-  messageHeader.ele('head:contentType').txt('urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0');
+  messageHeader.ele('head:contentType').txt('ACTIVATED_FCR');
 
   const body = envelope.ele('soapenv:Body', { 'wsu:Id': 'Body' });
   body.import(bodyXmlBuilder);
