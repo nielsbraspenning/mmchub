@@ -242,10 +242,10 @@ async function sendEnergyAccount() {
     revisionNumber: 1,                                        //bij updates moet dit veranderen
     senderId: '8719333027500',                                //covolt ean
     receiverId: '8716867999983',
-    createdDateTime: '2025-04-23T09:50:00',                   //moment waarop document gegenereerd is, lokale tijd
+    createdDateTime: '2025-04-25T09:40:00',                   //moment waarop document gegenereerd is, lokale tijd
     sampleInterval : 1,                                       //1
-    periodStart: '2025-04-22T00:00:00',                       //start van fcr blokken, lokale tijd
-    periodEnd: '2025-04-22T04:00:00',                         //einde van fcr blokken, lokale tijd
+    periodStart: '2025-04-24T00:00:00',                       //start van fcr blokken, lokale tijd
+    periodEnd: '2025-04-24T04:00:00',                         //einde van fcr blokken, lokale tijd
     timeSeriesId: 'TS-20250340-01',
     product: '8716867000016',
     marketEvaluationPointId: '871687910000500037'
