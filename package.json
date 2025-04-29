@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.8.4",
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "moment-timezone": "^0.5.48",
     "uuid": "^11.1.0",
