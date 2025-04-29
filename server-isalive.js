@@ -1,31 +1,46 @@
-const http = require('http');
-const { parseStringPromise } = require('xml2js');
+const express = require('express');
+const bodyParser = require('body-parser');
+const xml2js = require('xml2js');
 
-const server = http.createServer(async (req, res) => {
-  if (req.method === 'POST') {
-    let data = '';
-    req.on('data', chunk => (data += chunk));
-    req.on('end', async () => {
-      console.log('\n📥 Received SOAP message:\n', data);
+const app = express();
+const port = 3010;
 
-      // Optional: parse and respond with XML
-      res.writeHead(200, { 'Content-Type': 'text/xml' });
-      res.end(`
-        <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-          <soap:Body>
-            <AcknowledgementResponse xmlns="http://tennet.eu/cdm/tennet/TennetService/Message/v2.0">
-              <status>RECEIVED</status>
-            </AcknowledgementResponse>
-          </soap:Body>
-        </soap:Envelope>
-      `);
+// Middleware voor raw XML-body
+app.use(bodyParser.text({ type: '*/xml' }));
+
+// Endpoint voor Acknowledgement
+app.post('/mmcHub/Response/isAlive/v1.0', (req, res) => {
+    const xml = req.body;
+
+    console.log('Ontvangen SOAP bericht:');
+    console.log(xml);
+
+    // Optioneel: XML omzetten naar JSON
+    xml2js.parseString(xml, { explicitArray: false }, (err, result) => {
+        if (err) {
+            console.error('Fout bij XML-parsing:', err);
+            return res.status(400).send('Ongeldige XML');
+        }
+
+        console.log('Geparste inhoud:', JSON.stringify(result, null, 2));
+
+        // Verwerk hier de inhoud zoals nodig
+        // Bijvoorbeeld responseId loggen:
+        // const responseId = result['soap:Envelope']['soap:Body'].SomeElement.ResponseID;
+
+        // Verzend SOAP-achtige response (indien TenneT die verwacht)
+        res.set('Content-Type', 'text/xml');
+        res.send(`<?xml version="1.0"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <AcknowledgementResponse xmlns="http://www.tennet.eu/mmcHub/">
+      <Status>Success</Status>
+    </AcknowledgementResponse>
+  </soap:Body>
+</soap:Envelope>`);
     });
-  } else {
-    res.writeHead(405);
-    res.end();
-  }
 });
 
-server.listen(3000, () => {
-  console.log('🟢 HTTP server listening on port 3000');
+app.listen(port, () => {
+    console.log(`Node.js luistert op http://localhost:${port}`);
 });
