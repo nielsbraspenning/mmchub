@@ -45,10 +45,10 @@ const thumbprint = crypto
 
 
 const keyInfoBlock = `
-<ds:KeyInfo>
-  <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+<ds:KeyInfo Id="361aed54edtr4d3346a">
+  <wsse:SecurityTokenReference wsu:Id="ahsh47dtwgs78w2w9sjdjee238">
     <wsse:KeyIdentifier
-      ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
+      ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier"
       EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">
       ${thumbprint}
     </wsse:KeyIdentifier>
@@ -255,7 +255,7 @@ async function sendEnergyAccount() {
     digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256'
   });
 
-  console.log(sig)
+ //console.log(sig)
 
 
 
@@ -296,7 +296,11 @@ async function sendEnergyAccount() {
 });
 let signedXml = sig.getSignedXml();
 signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
- console.log('Signed SOAP XML:\n', signedXml);
+// console.log('Signed SOAP XML:\n', signedXml);
+
+signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm=http://www.w3.org/2001/10/xml-exc-c14n#><c14nEx:InclusiveNamespaces PrefixList="head soapenv" xmlns:c14nEx=http://www.w3.org/2001/10/xml-exc-c14n# /></ds:CanonicalizationMethod>');
+
+console.log(signedXml)
 
 
   try {
