@@ -6,74 +6,58 @@ const fs = require('fs');
 const moment = require('moment-timezone');
 const { v4: uuidv4 } = require('uuid');
 const uuid = uuidv4();
-
-
-
-//opmerkingen begin
-//<ns1:docStatus>
-//<ns1:value>A07</ns1:value>
-//</ns1:docStatus>
-//
-//<docStatus>A07</docStatus>
-//
-//--------------------------------
-//<ns1:sender_MarketParticipant.mRID codingScheme="A10">0123456789123</ns1:sender_MarketParticipant.mRID>
-//
-//<sender_MarketParticipant.mRID codingScheme="A01">1234567890123</sender_MarketParticipant.mRID>
-//---------------------------
-//<ns1:receiver_MarketParticipant.mRID codingScheme="A10">8716867999983</ns1:receiver_MarketParticipant.mRID>
-//
-//<receiver_MarketParticipant.mRID codingScheme="A01">9876543210987</receiver_MarketParticipant.mRID>
-//---------------------------
-//<createdDateTime>2025-03-30T12:00:00Z</createdDateTime> --> vandaag gecreeerd, voor levering van gisteren
-//<period.timeInterval>
-//		<start>2025-03-30T00:00:00Z</start>
-//		<end>2025-03-31T00:00:00Z</end>     dit tijdstip moet voor of gelijk zijn aan <createDatetime>
-//</period.timeInterval>
-//
-//----------------------------------
-//<domain.mRID codingScheme="A01">10YNL----------L</domain.mRID>
-//
-//?????
-//-----------------------------
-//<currency_Unit.name>EUR</currency_Unit.name>
-//
-//??????
-//-------------------------
-//<marketEvaluationPoint.mRID>123456789012345678</marketEvaluationPoint.mRID>
-//
-//<ns1:marketEvaluationPoint.mRID codingScheme="A10">012345678901234567</ns1:marketEvaluationPoint.mRID>
-//-----------------------
-//missend
-//
-//
-//<ns1:Period>
-//						<ns1:timeInterval>
-//							<ns1:start>2018-04-18T00:00Z</ns1:start>
-//							<ns1:end>2018-04-19T00:00Z</ns1:end>
-//						</ns1:timeInterval>
-//						<ns1:resolution>PT4S</ns1:resolution>
-//						<ns1:Point>
-//-------------------------------------------
-//aantal punten, 
-//
-//<quantity>1.00</quantity>
-//
-//<ns1:in_Quantity.quantity>824</ns1:in_Quantity.quantity>
-//<ns1:out_Quantity.quantity>6146</ns1:out_Quantity.quantity>
-//------------------------------------
-//
-
-
-//opmerkingen einde
+const forge = require('node-forge');
+const crypto = require('crypto');
 
 
 
 
 
+function getSubjectKeyIdentifier(certPem) {
+  const cert = forge.pki.certificateFromPem(certPem);
+  const skiDer = forge.pki.getPublicKeyFingerprint(cert.publicKey, {
+    type: 'RSAPublicKey',
+    md: forge.md.sha1.create(),
+    encoding: 'binary'
+  });
+  return Buffer.from(skiDer, 'binary').toString('base64');
+}
+
+function pemToDer(pem) {
+  const base64Body = pem
+    .replace(/-----BEGIN CERTIFICATE-----/, '')
+    .replace(/-----END CERTIFICATE-----/, '')
+    .replace(/\r?\n|\r/g, '');
+  return Buffer.from(base64Body, 'base64');
+}
 
 const privateKey = fs.readFileSync('./sign-cert/s-mimi-staging.key', 'utf8');
 const certificate = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
+
+const derCert = pemToDer(certificate);
+
+const thumbprint = crypto
+  .createHash('sha1')
+  .update(derCert)
+  .digest('base64');
+
+//console.log('Base64 SHA-1 Thumbprint:', thumbprint);
+
+
+const keyInfoBlock = `
+<ds:KeyInfo>
+  <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+    <wsse:KeyIdentifier
+      ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
+      EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">
+      ${thumbprint}
+    </wsse:KeyIdentifier>
+  </wsse:SecurityTokenReference>
+</ds:KeyInfo>
+`;
+
+
+
 
 const endpoint = 'http://localhost:8081/AncillaryServices/EnergyAccount/v1.0'; // Het endpoint van TenneT
 const namespace = 'http://sys.svc.tennet.nl/AncillaryServices/';
@@ -218,6 +202,8 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
     'wsu:Id': 'X509Token'
   }).txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''));
 
+  
+
   const messageHeader = header.ele('head:MessageAddressing');
   messageHeader.ele('head:technicalMessageId').txt(uuid);
   messageHeader.ele('head:correlationId').txt(uuid);
@@ -254,10 +240,14 @@ async function sendEnergyAccount() {
   const unsignedXml = buildUnsignedSOAP(bodyXmlBuilder, certificate);
   //const unsignedXml = unsignedSoapBuilder.end({ prettyPrint: true });
 
+
+
   const sig = new SignedXml({
     privateKey,
     signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
   });
+
+
 
   sig.addReference({
     xpath: "//*[local-name(.)='Body']",
@@ -265,7 +255,28 @@ async function sendEnergyAccount() {
     digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256'
   });
 
+  console.log(sig)
+
+
+
   sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
+
+  const skiBase64 = getSubjectKeyIdentifier(certificate);
+
+  //sig.keyInfoProvider = {
+  //  getKeyInfo: () => `
+  //    <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+  //      <wsse:KeyIdentifier
+  //        ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier"
+  //        EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">
+  //        ${skiBase64}
+  //      </wsse:KeyIdentifier>
+  //    </wsse:SecurityTokenReference>`
+  //};
+  
+
+
+
   sig.keyInfoProvider = {
     getKeyInfo: () => `
       <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
@@ -277,13 +288,15 @@ async function sendEnergyAccount() {
  //sig.computeSignature(unsignedXml);
  // const signedXml = sig.getSignedXml();
  sig.computeSignature(unsignedXml, {
+  prefix: "ds",
   location: {
     reference: "//*[local-name(.)='Security']",
     action: 'append'
   }
 });
-const signedXml = sig.getSignedXml();
-  console.log('Signed SOAP XML:\n', signedXml);
+let signedXml = sig.getSignedXml();
+signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
+ console.log('Signed SOAP XML:\n', signedXml);
 
 
   try {
