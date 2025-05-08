@@ -295,7 +295,7 @@ signedXml = signedXml.replace('<ds:DigestValue>w35gFl85eumJBCJSBvBCYZX4ZbfHdONwP
 console.log(signedXml)
 
 // Replace 'your-xml-file.xml' with the path to your XML file
-const xmlFilePath = path.join(__dirname, 'test.xml');
+const xmlFilePath = path.join(__dirname, 'final_signed_message.xml');
 const fileXml = fs.readFileSync(xmlFilePath, 'utf8');
 
 
