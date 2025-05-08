@@ -10,7 +10,8 @@ const forge = require('node-forge');
 const crypto = require('crypto');
 
 
-
+const signature_id = uuidv4();
+const reference_uri = 'id-' + uuidv4();
 
 
 function getSubjectKeyIdentifier(certPem) {
@@ -75,8 +76,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
- const numPoints = (duurInUren * 60 * 60) / intervalSeconds
- //const numPoints = 10
+ //const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+ const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
@@ -184,18 +185,23 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   const doc = create({ version: '1.0', encoding: 'UTF-8' });
 
   // Build Envelope
-  const envelope = doc.ele('soapenv:Envelope', {
-    'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-    'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
-    'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-    'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
-    'xmlns:head': 'http://sys.svc.tennet.nl/MMCHub/Header/v1'
+  const envelope = doc.ele('soap11:Envelope', {
+     'xmlns:header': 'http://sys.svc.tennet.nl/MMCHub/Header/v1',
+    'xmlns:soap11': 'http://schemas.xmlsoap.org/soap/envelope/'
+    //'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
+    //'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+    //'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+   
 
   });
 
-  const header = envelope.ele('soapenv:Header');
+  const header = envelope.ele('soap11:Header');
 
-  const security = header.ele('wsse:Security', { 'soapenv:mustUnderstand': '1' });
+  const security = header.ele('wsse:Security', { 
+      'soap11:mustUnderstand': '1', 
+      'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+      'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'    
+    });
   security.ele('wsse:BinarySecurityToken', {
     EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
     ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
@@ -204,15 +210,27 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
 
   
 
-  const messageHeader = header.ele('head:MessageAddressing');
-  messageHeader.ele('head:technicalMessageId').txt(uuid);
-  messageHeader.ele('head:correlationId').txt(uuid);
-  messageHeader.ele('head:senderId').txt('8719333027500');
-  messageHeader.ele('head:receiverId').txt('8716867999983');
-  messageHeader.ele('head:carrierId').txt('8719333027500');
-  messageHeader.ele('head:contentType').txt('ACTIVATED_FCR');
+  const messageHeader = header.ele('header:MessageAddressing',{
+    'xmlns:xsi'     : 'http://www.w3.org/2001/XMLSchema-instance',
+    'xmlns:xs'      :'http://www.w3.org/2001/XMLSchema',
+    'xmlns:wsu'     :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+    'xmlns:wsse'    :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+    'xmlns:tsm'     :'http://tennet.eu/cdm/tennet/TennetService/Message/v2.0',
+    'xmlns:tns0'    :'http://tennet.eu/cdm/tennet/v1.0',
+    'xmlns:tns'     :'http://sys.svc.tennet.nl/AncillaryServices',
+    'xmlns:tas'     :'http://sys.svc.tennet.nl/AncillaryServices/v1',
+    'xmlns:ead'     :'urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0',
+    'xmlns:common'  :'http://sys.svc.tennet.nl/MMCHub/common/v1',
+    'xmlns:cl'      :'urn:entsoe.eu:wgedi:codelists'
+  });
+  messageHeader.ele('header:technicalMessageId').txt(uuid);
+  messageHeader.ele('header:correlationId').txt(uuid);
+  messageHeader.ele('header:senderId').txt('8719333027500');
+  messageHeader.ele('header:receiverId').txt('8716867999983');
+  messageHeader.ele('header:carrierId').txt('8719333027500');
+  messageHeader.ele('header:contentType').txt('ACTIVATED_FCR');
 
-  const body = envelope.ele('soapenv:Body', { 'wsu:Id': 'Body' });
+  const body = envelope.ele('soap11:Body', { 'wsu:Id': reference_uri });
   body.import(bodyXmlBuilder);
 
   // ✅ Now call .end() on the root document
@@ -247,8 +265,11 @@ async function sendEnergyAccount() {
     signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
   });
 
+//  sig.idAttributes = ['wsu:Id']; 
 
 
+  //xpath: "//*[local-name(.)='Body']",
+   //  uri: reference_uri,
   sig.addReference({
     xpath: "//*[local-name(.)='Body']",
     transforms: ['http://www.w3.org/2001/10/xml-exc-c14n#'],
@@ -295,10 +316,11 @@ async function sendEnergyAccount() {
   }
 });
 let signedXml = sig.getSignedXml();
+signedXml = signedXml.replace('<ds:Signature', '<ds:Signature Id="' +  signature_id + '"');
 signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
-// console.log('Signed SOAP XML:\n', signedXml);
+signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="header soap11" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" /></ds:CanonicalizationMethod>');
+signedXml = signedXml.replace('<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>','<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"> <ec:InclusiveNamespaces PrefixList="header" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/> </ds:Transform>');
 
-signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm=http://www.w3.org/2001/10/xml-exc-c14n#><c14nEx:InclusiveNamespaces PrefixList="head soapenv" xmlns:c14nEx=http://www.w3.org/2001/10/xml-exc-c14n# /></ds:CanonicalizationMethod>');
 
 console.log(signedXml)
 
@@ -327,14 +349,14 @@ console.log(signedXml)
 function handleResponse(xmlResponse) {
   const doc = new DOMParser().parseFromString(xmlResponse);
   const select = xpath.useNamespaces({
-    soapenv: 'http://schemas.xmlsoap.org/soap/envelope/',
+    soap11: 'http://schemas.xmlsoap.org/soap/envelope/',
     hub: 'http://sys.svc.tennet.nl/AncillaryServices/v1'
   });
 
-  const faultNode = select('//soapenv:Fault', doc);
+  const faultNode = select('//soap11:Fault', doc);
   if (faultNode.length > 0) {
-    const faultCode = select('string(//soapenv:Fault/faultcode)', doc);
-    const faultString = select('string(//soapenv:Fault/faultstring)', doc);
+    const faultCode = select('string(//soap11:Fault/faultcode)', doc);
+    const faultString = select('string(//soap11:Fault/faultstring)', doc);
     console.error(`❌ SOAP Fault ontvangen:\nCode: ${faultCode}\nMelding: ${faultString}`);
     return;
   }
