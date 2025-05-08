@@ -76,8 +76,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
- const numPoints = (duurInUren * 60 * 60) / intervalSeconds
- //const numPoints = 10
+ //const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+ const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
@@ -265,11 +265,7 @@ async function sendEnergyAccount() {
     signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
   });
 
-//  sig.idAttributes = ['wsu:Id']; 
 
-
-  //xpath: "//*[local-name(.)='Body']",
-   //  uri: reference_uri,
   sig.addReference({
     xpath: "//*[local-name(.)='Body']",
     transforms: ['http://www.w3.org/2001/10/xml-exc-c14n#'],
@@ -282,19 +278,8 @@ async function sendEnergyAccount() {
 
   sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
 
-  const skiBase64 = getSubjectKeyIdentifier(certificate);
+//  const skiBase64 = getSubjectKeyIdentifier(certificate);
 
-  //sig.keyInfoProvider = {
-  //  getKeyInfo: () => `
-  //    <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-  //      <wsse:KeyIdentifier
-  //        ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier"
-  //        EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">
-  //        ${skiBase64}
-  //      </wsse:KeyIdentifier>
-  //    </wsse:SecurityTokenReference>`
-  //};
-  
 
 
 
