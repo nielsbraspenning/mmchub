@@ -3,46 +3,38 @@ const { create } = require('xmlbuilder2');
 const { SignedXml } = require('xml-crypto');
 const axios = require('axios');
 const fs = require('fs');
+const path = require('path');
 const moment = require('moment-timezone');
 const { v4: uuidv4 } = require('uuid');
 const uuid = uuidv4();
 const forge = require('node-forge');
 const crypto = require('crypto');
-
+const { DOMParser } = require('@xmldom/xmldom');
+const { ExclusiveCanonicalization } = require('xml-crypto').SignedXml;
 
 const signature_id = uuidv4();
 const reference_uri = 'id-' + uuidv4();
 
-
-function getSubjectKeyIdentifier(certPem) {
-  const cert = forge.pki.certificateFromPem(certPem);
-  const skiDer = forge.pki.getPublicKeyFingerprint(cert.publicKey, {
-    type: 'RSAPublicKey',
-    md: forge.md.sha1.create(),
-    encoding: 'binary'
-  });
-  return Buffer.from(skiDer, 'binary').toString('base64');
-}
-
-function pemToDer(pem) {
-  const base64Body = pem
-    .replace(/-----BEGIN CERTIFICATE-----/, '')
-    .replace(/-----END CERTIFICATE-----/, '')
-    .replace(/\r?\n|\r/g, '');
-  return Buffer.from(base64Body, 'base64');
-}
-
 const privateKey = fs.readFileSync('./sign-cert/s-mimi-staging.key', 'utf8');
 const certificate = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
 
-const derCert = pemToDer(certificate);
-
-const thumbprint = crypto
-  .createHash('sha1')
-  .update(derCert)
-  .digest('base64');
+//const derCert = pemToDer(certificate);
+//
+//const thumbprint = crypto
+//  .createHash('sha1')
+//  .update(derCert)
+//  .digest('base64');
 
 //console.log('Base64 SHA-1 Thumbprint:', thumbprint);
+
+//const sign = crypto.createSign('RSA-SHA256');
+
+// Update the Sign object with the canonicalized SignedInfo
+//sign.update(canonicalizedSignedInfo);
+//sign.end();
+
+// Generate the signature in base64 format
+//const signatureValue = sign.sign(privateKey, 'base64');
 
 
 const keyInfoBlock = `
@@ -51,7 +43,7 @@ const keyInfoBlock = `
     <wsse:KeyIdentifier
       ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier"
       EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">
-      ${thumbprint}
+      testsignature
     </wsse:KeyIdentifier>
   </wsse:SecurityTokenReference>
 </ds:KeyInfo>
@@ -272,15 +264,8 @@ async function sendEnergyAccount() {
     digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256'
   });
 
- //console.log(sig)
-
-
 
   sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
-
-//  const skiBase64 = getSubjectKeyIdentifier(certificate);
-
-
 
 
   sig.keyInfoProvider = {
@@ -305,13 +290,17 @@ signedXml = signedXml.replace('<ds:Signature', '<ds:Signature Id="' +  signature
 signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
 signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="header soap11" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" /></ds:CanonicalizationMethod>');
 signedXml = signedXml.replace('<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>','<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"> <ec:InclusiveNamespaces PrefixList="header" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/> </ds:Transform>');
-
+signedXml = signedXml.replace('<ds:DigestValue>w35gFl85eumJBCJSBvBCYZX4ZbfHdONwP1blVIcHdic=</ds:DigestValue>', '<ds:DigestValue>d/9PnDY3zXtnummgfkB8AUYrk/AmiiWOhKTZEGzXFLI=</ds:DigestValue>');
 
 console.log(signedXml)
 
+// Replace 'your-xml-file.xml' with the path to your XML file
+const xmlFilePath = path.join(__dirname, 'test.xml');
+const fileXml = fs.readFileSync(xmlFilePath, 'utf8');
+
 
   try {
-    const response = await axios.post(endpoint, signedXml, {
+    const response = await axios.post(endpoint, fileXml, {
       headers: {
         'Content-Type': 'text/xml',
         'SOAPAction': 'http://sys.svc.tennet.nl/AncillaryServices/sendEnergyAccount'
