@@ -230,7 +230,7 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   messageHeader.ele('header:carrierId').txt('8719333027500');
   messageHeader.ele('header:contentType').txt('ACTIVATED_FCR');
 
-  const body = envelope.ele('soap11:Body', { 'wsu:Id': reference_uri });
+  const body = envelope.ele('soap11:Body', { 'xmlns:wsu' :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', 'wsu:Id': reference_uri });
   body.import(bodyXmlBuilder);
 
   // ✅ Now call .end() on the root document
