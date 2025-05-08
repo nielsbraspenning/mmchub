@@ -1,0 +1,65 @@
+<soapenv:Envelope
+	xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+	<soapenv:Header>
+		<MessageAddressing
+			xmlns="http://sys.svc.tennet.nl/MMCHub/Header/v1">
+			<technicalMessageId>ae8b0063-96dc-406e-a722-9a1ccdf6bf0d</technicalMessageId>
+			<correlationId>839e6e9b-f73e-4846-bb02-feee56b6d5d2</correlationId>
+			<senderId>8716867999983</senderId>
+			<receiverId>8719333027500</receiverId>
+			<carrierId>8716867999983</carrierId>
+			<contentType>ACK_ACTIVATED_FCR</contentType>
+		</MessageAddressing>
+		<wsse:Security
+			xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+			xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" soap:mustUnderstand="1">
+			<dsig:Signature
+				xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" Id="G7a3b1a1b-47ba-4ada-8fbc-0b248e0c550b">
+				<dsig:SignedInfo>
+					<dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#">
+						<c14nEx:InclusiveNamespaces
+							xmlns:c14nEx="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="soapenv"/>
+						</dsig:CanonicalizationMethod>
+						<dsig:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+						<dsig:Reference URI="#G27a9b966-2791-497d-8b7d-d95a4195b40b">
+							<dsig:Transforms>
+								<dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#">
+									<c14nEx:InclusiveNamespaces
+										xmlns:c14nEx="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList=""/>
+									</dsig:Transform>
+								</dsig:Transforms>
+								<dsig:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+								<dsig:DigestValue>oy8CVTieH1EkIXIDeZO2uF+qcKPcutomR7MkOw0u0QU=</dsig:DigestValue>
+							</dsig:Reference>
+						</dsig:SignedInfo>
+						<dsig:SignatureValue>IuSNlkTq42U65rCE4X3X3dz38f8hQjffi62n1/TTDZRMy5+eMPAyr//xs6RlvR5cqZhMj3xumqfXIgsHzeqaueupI+X4KjgML9aI/fxAt5CZ5l6WjeHOXT8jde1brJXgomJy6XMHgnPKLOV3s1/uvW/tc9+ZgfRRDryBh7DzrIIwEnt4VKeHubugBgRMu2JMUkxpmue4dkAWjrEUkNegms2lmQ0yA9NOimrP1Xutf0bLtZyzwwBi04LCkLMakOb6xsIpBH2/VVA6s4MdD5nzwS34QMViajIUj7iM6obVzTugQE4j9RdUzHPGDV3ghv+Fjr8M0RvzGVyh3aK3TFXKYg==</dsig:SignatureValue>
+						<dsig:KeyInfo Id="Ge047514a-2c7a-423e-9380-3b996a6dcd0d">
+							<wsse:SecurityTokenReference
+								xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="G9511ff98-358b-4f71-969f-a90b8929b203">
+								<wsse:KeyIdentifier EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier">2Qa7mgFHWewQ8oYGACqyfcAyqm0=</wsse:KeyIdentifier>
+							</wsse:SecurityTokenReference>
+						</dsig:KeyInfo>
+					</dsig:Signature>
+				</wsse:Security>
+			</soapenv:Header>
+			<soapenv:Body
+				xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="G27a9b966-2791-497d-8b7d-d95a4195b40b">
+				<Acknowledgement_MarketDocument
+					xmlns="urn:iec62325.351:tc57wg16:451-1:acknowledgementdocument:7:0">
+					<mRID>8e415528bfd7444d9e50c015d167fde0</mRID>
+					<createdDateTime>2025-05-08T12:39:42Z</createdDateTime>
+					<sender_MarketParticipant.mRID codingScheme="A10">8716867999983</sender_MarketParticipant.mRID>
+					<sender_MarketParticipant.marketRole.type>A04</sender_MarketParticipant.marketRole.type>
+					<receiver_MarketParticipant.mRID codingScheme="A10">8719333027500</receiver_MarketParticipant.mRID>
+					<receiver_MarketParticipant.marketRole.type>A33</receiver_MarketParticipant.marketRole.type>
+					<Reason>
+						<code>A02</code>
+						<text>Message fully rejected</text>
+					</Reason>
+					<Reason>
+						<code>999</code>
+						<text>TEN-500021 - Incorrect message signing</text>
+					</Reason>
+				</Acknowledgement_MarketDocument>
+			</soapenv:Body>
+		</soapenv:Envelope>
