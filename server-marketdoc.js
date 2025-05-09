@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const xml2js = require('xml2js');
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
@@ -11,6 +12,7 @@ app.use(bodyParser.text({ type: '*/xml' }));
 // Endpoint voor Acknowledgement
 app.post('/mmcHub/Response/Acknowledgement/v1.0', (req, res) => {
     const xml = req.body;
+    fs.writeFileSync('tennet_response.xml', xml);
 
     console.log('Ontvangen SOAP bericht:');
     console.log(xml);
