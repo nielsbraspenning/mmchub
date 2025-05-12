@@ -247,56 +247,55 @@ async function sendEnergyAccount() {
     marketEvaluationPointId: '871687910000500037'
   });
 
-  //const unsignedXml = buildUnsignedSOAP(bodyXmlBuilder, certificate);
-  const signedXml =  buildUnsignedSOAP(bodyXmlBuilder, certificate);
+  const unsignedXml = buildUnsignedSOAP(bodyXmlBuilder, certificate);
   //const unsignedXml = unsignedSoapBuilder.end({ prettyPrint: true });
 
 
 
- // const sig = new SignedXml({
- //   privateKey,
- //   signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
- // });
-//
-//
- // sig.addReference({
- //   xpath: "//*[local-name(.)='Body']",
- //   transforms: ['http://www.w3.org/2001/10/xml-exc-c14n#'],
- //   digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256'
- // });
-//
-//
- // sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
-//
-//
- // sig.keyInfoProvider = {
- //   getKeyInfo: () => `
- //     <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
- //       <wsse:Reference URI="#X509Token"
- //         ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" />
- //     </wsse:SecurityTokenReference>`
- // };
+  const sig = new SignedXml({
+    privateKey,
+    signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256'
+  });
+
+
+  sig.addReference({
+    xpath: "//*[local-name(.)='Body']",
+    transforms: ['http://www.w3.org/2001/10/xml-exc-c14n#'],
+    digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256'
+  });
+
+
+  sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
+
+
+  sig.keyInfoProvider = {
+    getKeyInfo: () => `
+      <wsse:SecurityTokenReference xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+        <wsse:Reference URI="#X509Token"
+          ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3" />
+      </wsse:SecurityTokenReference>`
+  };
 
  //sig.computeSignature(unsignedXml);
  // const signedXml = sig.getSignedXml();
- //sig.computeSignature(unsignedXml, {
- // prefix: "ds",
- // location: {
- //   reference: "//*[local-name(.)='Security']",
- //   action: 'append'
- // }
-//});
-//let signedXml = sig.getSignedXml();
-//signedXml = signedXml.replace('<ds:Signature', '<ds:Signature Id="' +  signature_id + '"');
-//signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
-//signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="header soap11" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" /></ds:CanonicalizationMethod>');
-//signedXml = signedXml.replace('<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>','<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"> <ec:InclusiveNamespaces PrefixList="header" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/> </ds:Transform>');
-//signedXml = signedXml.replace('<ds:DigestValue>w35gFl85eumJBCJSBvBCYZX4ZbfHdONwP1blVIcHdic=</ds:DigestValue>', '<ds:DigestValue>d/9PnDY3zXtnummgfkB8AUYrk/AmiiWOhKTZEGzXFLI=</ds:DigestValue>');
+ sig.computeSignature(unsignedXml, {
+  prefix: "ds",
+  location: {
+    reference: "//*[local-name(.)='Security']",
+    action: 'append'
+  }
+});
+let signedXml = sig.getSignedXml();
+signedXml = signedXml.replace('<ds:Signature', '<ds:Signature Id="' +  signature_id + '"');
+signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
+signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="header soap11" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" /></ds:CanonicalizationMethod>');
+signedXml = signedXml.replace('<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>','<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"> <ec:InclusiveNamespaces PrefixList="header" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/> </ds:Transform>');
+signedXml = signedXml.replace('<ds:DigestValue>w35gFl85eumJBCJSBvBCYZX4ZbfHdONwP1blVIcHdic=</ds:DigestValue>', '<ds:DigestValue>d/9PnDY3zXtnummgfkB8AUYrk/AmiiWOhKTZEGzXFLI=</ds:DigestValue>');
 
 console.log(signedXml)
 
 // Replace 'your-xml-file.xml' with the path to your XML file
-const xmlFilePath = path.join(__dirname, signedXml);
+const xmlFilePath = path.join(__dirname, 'final_signed_message.xml');
 const fileXml = fs.readFileSync(xmlFilePath, 'utf8');
 
 
@@ -347,4 +346,3 @@ function handleResponse(xmlResponse) {
 
 
 sendEnergyAccount();
-
