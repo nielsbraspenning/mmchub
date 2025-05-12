@@ -9,7 +9,7 @@
 			<receiver_MarketParticipant.mRID codingScheme="A10">8719333027500</receiver_MarketParticipant.mRID>
 			<receiver_MarketParticipant.marketRole.type>A33</receiver_MarketParticipant.marketRole.type>
 			<Reason>
-			    <code>A02</code>
+			    	<code>A02</code>
 				<text>Message fully rejected</text>
 			</Reason>
 			<Reason>
