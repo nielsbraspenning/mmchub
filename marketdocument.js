@@ -1,6 +1,8 @@
 const { create } = require('xmlbuilder2');
 //const { DateTime } = require('luxon');
 const { SignedXml } = require('xml-crypto');
+const xpath = require('xpath');
+
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -9,45 +11,47 @@ const { v4: uuidv4 } = require('uuid');
 const uuid = uuidv4();
 const forge = require('node-forge');
 const crypto = require('crypto');
-const { DOMParser } = require('@xmldom/xmldom');
 const { ExclusiveCanonicalization } = require('xml-crypto').SignedXml;
+const { DOMParser, XMLSerializer } = require('@xmldom/xmldom');
+
+
+
+
+//only to check the key
+//const certPem = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
+//const certA = forge.pki.certificateFromPem(certPem);
+//const skiExtA = certA.getExtension('subjectKeyIdentifier');
+//const skiBase64A = Buffer.from(skiExtA.subjectKeyIdentifier, 'hex').toString('base64');
+//
+//console.log(skiBase64A);
 
 const signature_id = uuidv4();
-const reference_uri = 'id-' + uuidv4();
+const reference_uri = uuidv4();
+const keyinfo_id = uuidv4();
+const other_id = uuidv4();
 
 const privateKey = fs.readFileSync('./sign-cert/s-mimi-staging.key', 'utf8');
 const certificate = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
 
-//const derCert = pemToDer(certificate);
-//
-//const thumbprint = crypto
-//  .createHash('sha1')
-//  .update(derCert)
-//  .digest('base64');
 
-//console.log('Base64 SHA-1 Thumbprint:', thumbprint);
+const pem = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
+const cert = forge.pki.certificateFromPem(pem);
 
-//const sign = crypto.createSign('RSA-SHA256');
-
-// Update the Sign object with the canonicalized SignedInfo
-//sign.update(canonicalizedSignedInfo);
-//sign.end();
-
-// Generate the signature in base64 format
-//const signatureValue = sign.sign(privateKey, 'base64');
+const skiExt = cert.getExtension('subjectKeyIdentifier');
+const skiBase64 = Buffer.from(skiExt.subjectKeyIdentifier, 'hex').toString('base64');
 
 
 const keyInfoBlock = `
-<ds:KeyInfo Id="361aed54edtr4d3346a">
-  <wsse:SecurityTokenReference wsu:Id="ahsh47dtwgs78w2w9sjdjee238">
+<dsig:KeyInfo Id="${keyinfo_id}">
+  <wsse:SecurityTokenReference 
+      xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="${other_id}">
     <wsse:KeyIdentifier
-      ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier"
-      EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">
-      testsignature
+        EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary"
+      ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier">
+      ${skiBase64}
     </wsse:KeyIdentifier>
   </wsse:SecurityTokenReference>
-</ds:KeyInfo>
-`;
+</dsig:KeyInfo>`;
 
 
 
@@ -68,8 +72,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
- //const numPoints = (duurInUren * 60 * 60) / intervalSeconds
- const numPoints = 10
+ const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+ //const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {
@@ -156,16 +160,6 @@ function buildEnergyAccountXML(params) {
     .up();
   });
 
-
-
-  //points.forEach(p => {
-  //  ts.ele('Point')
-  //      .ele('in_position').txt(p.position).up()
-  //      .ele('in_Quantity.quantity').txt(p.in).up()
-  //      .ele('out_Quantity.quantity').txt(p.out).up()
-  //  .up();
-  //});
-
   return doc;  // Return the XMLBuilder instance
 }
 
@@ -177,52 +171,32 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
   const doc = create({ version: '1.0', encoding: 'UTF-8' });
 
   // Build Envelope
-  const envelope = doc.ele('soap11:Envelope', {
-     'xmlns:header': 'http://sys.svc.tennet.nl/MMCHub/Header/v1',
-    'xmlns:soap11': 'http://schemas.xmlsoap.org/soap/envelope/'
-    //'xmlns:hub': 'http://sys.svc.tennet.nl/AncillaryServices/',
-    //'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-    //'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
-   
-
+  const envelope = doc.ele('soapenv:Envelope', {
+    'xmlns:soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
   });
 
-  const header = envelope.ele('soap11:Header');
+  const header = envelope.ele('soapenv:Header');
+
+  const messageHeader = header.ele('MessageAddressing',{
+    'xmlns' : 'http://sys.svc.tennet.nl/MMCHub/Header/v1'
+  });
+  
+  messageHeader.ele('technicalMessageId').txt(uuid);
+  messageHeader.ele('correlationId').txt(uuid);
+  messageHeader.ele('senderId').txt('8719333027500');
+  messageHeader.ele('receiverId').txt('8716867999983');
+  messageHeader.ele('carrierId').txt('8719333027500');
+  messageHeader.ele('contentType').txt('ACTIVATED_FCR');
 
   const security = header.ele('wsse:Security', { 
-      'soap11:mustUnderstand': '1', 
-      'xmlns:wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
-      'xmlns:wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'    
-    });
-  security.ele('wsse:BinarySecurityToken', {
-    EncodingType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary',
-    ValueType: 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3',
-    'wsu:Id': 'X509Token'
-  }).txt(certificate.replace(/-----BEGIN CERTIFICATE-----|-----END CERTIFICATE-----|\n/g, ''));
-
-  
-
-  const messageHeader = header.ele('header:MessageAddressing',{
-    'xmlns:xsi'     : 'http://www.w3.org/2001/XMLSchema-instance',
-    'xmlns:xs'      :'http://www.w3.org/2001/XMLSchema',
-    'xmlns:wsu'     :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
-    'xmlns:wsse'    :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-    'xmlns:tsm'     :'http://tennet.eu/cdm/tennet/TennetService/Message/v2.0',
-    'xmlns:tns0'    :'http://tennet.eu/cdm/tennet/v1.0',
-    'xmlns:tns'     :'http://sys.svc.tennet.nl/AncillaryServices',
-    'xmlns:tas'     :'http://sys.svc.tennet.nl/AncillaryServices/v1',
-    'xmlns:ead'     :'urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0',
-    'xmlns:common'  :'http://sys.svc.tennet.nl/MMCHub/common/v1',
-    'xmlns:cl'      :'urn:entsoe.eu:wgedi:codelists'
+    'xmlns:wsse' : 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+		'xmlns:soap' : 'http://schemas.xmlsoap.org/soap/envelope/',
+    'soap:mustUnderstand': '1'
   });
-  messageHeader.ele('header:technicalMessageId').txt(uuid);
-  messageHeader.ele('header:correlationId').txt(uuid);
-  messageHeader.ele('header:senderId').txt('8719333027500');
-  messageHeader.ele('header:receiverId').txt('8716867999983');
-  messageHeader.ele('header:carrierId').txt('8719333027500');
-  messageHeader.ele('header:contentType').txt('ACTIVATED_FCR');
 
-  const body = envelope.ele('soap11:Body', { 'xmlns:wsu' :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', 'wsu:Id': reference_uri });
+
+
+  const body = envelope.ele('soapenv:Body', { 'xmlns:wsu' :'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', 'wsu:Id': reference_uri });
   body.import(bodyXmlBuilder);
 
   // ✅ Now call .end() on the root document
@@ -234,15 +208,15 @@ function buildUnsignedSOAP(bodyXmlBuilder, certificate) {
 
 async function sendEnergyAccount() {
   const bodyXmlBuilder = buildEnergyAccountXML({
-    mRID: 'DOC-FCR-20250340-0001',                            //blijf gelijk
+    mRID: 'DOC-FCR-20250514-0001',                            //blijf gelijk
     revisionNumber: 1,                                        //bij updates moet dit veranderen
     senderId: '8719333027500',                                //covolt ean
     receiverId: '8716867999983',
-    createdDateTime: '2025-04-25T09:40:00',                   //moment waarop document gegenereerd is, lokale tijd
+    createdDateTime: '2025-05-14T14:00:00',                   //moment waarop document gegenereerd is, lokale tijd
     sampleInterval : 1,                                       //1
-    periodStart: '2025-04-24T00:00:00',                       //start van fcr blokken, lokale tijd
-    periodEnd: '2025-04-24T04:00:00',                         //einde van fcr blokken, lokale tijd
-    timeSeriesId: 'TS-20250340-01',
+    periodStart: '2025-05-15T00:00:00',                       //start van fcr blokken, lokale tijd
+    periodEnd: '2025-05-16T04:00:00',                         //einde van fcr blokken, lokale tijd
+    timeSeriesId: 'TS-20250514-01',
     product: '8716867000016',
     marketEvaluationPointId: '871687910000500037'
   });
@@ -278,29 +252,95 @@ async function sendEnergyAccount() {
 
  //sig.computeSignature(unsignedXml);
  // const signedXml = sig.getSignedXml();
+ //sig.signatureId = "G146c3de7-2534-41c5-828b-642367ce7201";
+
  sig.computeSignature(unsignedXml, {
-  prefix: "ds",
+  prefix: "dsig",
   location: {
     reference: "//*[local-name(.)='Security']",
     action: 'append'
   }
 });
 let signedXml = sig.getSignedXml();
-signedXml = signedXml.replace('<ds:Signature', '<ds:Signature Id="' +  signature_id + '"');
-signedXml = signedXml.replace('</ds:SignatureValue>', '</ds:SignatureValue>' + keyInfoBlock);
-signedXml = signedXml.replace('<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',  '<ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><ec:InclusiveNamespaces PrefixList="header soap11" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#" /></ds:CanonicalizationMethod>');
-signedXml = signedXml.replace('<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>','<ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"> <ec:InclusiveNamespaces PrefixList="header" xmlns:ec="http://www.w3.org/2001/10/xml-exc-c14n#"/> </ds:Transform>');
-signedXml = signedXml.replace('<ds:DigestValue>w35gFl85eumJBCJSBvBCYZX4ZbfHdONwP1blVIcHdic=</ds:DigestValue>', '<ds:DigestValue>d/9PnDY3zXtnummgfkB8AUYrk/AmiiWOhKTZEGzXFLI=</ds:DigestValue>');
 
-console.log(signedXml)
+signedXml = signedXml.replace(
+  '<dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>',
+  `<dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#">
+     <c14nEx:InclusiveNamespaces xmlns:c14nEx="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="soapenv"/>
+   </dsig:CanonicalizationMethod>`
+);
 
-// Replace 'your-xml-file.xml' with the path to your XML file
-const xmlFilePath = path.join(__dirname, 'final_signed_message.xml');
-const fileXml = fs.readFileSync(xmlFilePath, 'utf8');
+signedXml = signedXml.replace(
+'<dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>','<dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><c14nEx:InclusiveNamespaces xmlns:c14nEx="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList=""/></dsig:Transform>'
+);
+
+signedXml = signedXml.replace(
+  '</dsig:SignatureValue>',
+  '</dsig:SignatureValue>' + keyInfoBlock
+);
+
+//fs.writeFileSync('outgoing_soap.xml', signedXml, 'utf8');
+
+//Retrieved info
+
+// ➡️ Gebruik jouw bestaande signedXml string (na .replace)
+const doc = new DOMParser().parseFromString(signedXml, 'application/xml');
+
+// 🔎 XPath met correcte prefix
+const select = xpath.useNamespaces({
+  dsig: 'http://www.w3.org/2000/09/xmldsig#'
+});
+
+// Zoek het <dsig:SignedInfo>-element
+const signedInfoNode = select('//dsig:SignedInfo', doc)[0];
+if (!signedInfoNode) {
+  throw new Error('❌ Geen <dsig:SignedInfo> gevonden');
+}
+
+// Zet het om naar string en toon in console
+const signedInfoString = new XMLSerializer().serializeToString(signedInfoNode);
+console.log('📦 Stap 1: Extracted <dsig:SignedInfo>:\n', signedInfoString);
+
+const canon = canonicalizeXml(signedInfoString);
+console.log('🔒 Canonicalized XML:\n', canon);
+
+fs.writeFileSync('canonicalized.xml', canon, 'utf8');
+
+
+const signer = crypto.createSign('RSA-SHA256');
+signer.update(canon);
+signer.end();
+
+const signatureValue = signer.sign(privateKey, 'base64');
+
+// ✅ Output
+console.log('✅ SignatureValue:\n', signatureValue);
+
+//signedXml = signedXml.replace(
+//  '<dsig:SignatureValue>',
+//  '<dsig:SignatureValue>' + signatureValue
+//);
+
+//fs.writeFileSync('final-outgoing_soap.xml', signedXml, 'utf8');
+
+const signedXmlWithWrongSignatureValue = new DOMParser().parseFromString(signedXml, 'application/xml');
+
+
+// 4. Vervang de oude SignatureValue node
+const signatureValueNode = select('//dsig:SignatureValue', signedXmlWithWrongSignatureValue)[0];
+if (!signatureValueNode) throw new Error('⚠️ Geen <SignatureValue> gevonden');
+
+signatureValueNode.textContent = signatureValue;
+
+// 5. Schrijf naar bestand (of console.log als je wilt inspecteren)
+const updatedXml = new XMLSerializer().serializeToString(signedXmlWithWrongSignatureValue);
+fs.writeFileSync('transmitted_soap_message.xml', updatedXml, 'utf8');
+console.log('✅ Nieuwe SignatureValue succesvol toegevoegd!');
+
 
 
   try {
-    const response = await axios.post(endpoint, fileXml, {
+    const response = await axios.post(endpoint, updatedXml, {
       headers: {
         'Content-Type': 'text/xml',
         'SOAPAction': 'http://sys.svc.tennet.nl/AncillaryServices/sendEnergyAccount'
@@ -343,6 +383,54 @@ function handleResponse(xmlResponse) {
     console.warn('⚠️ Onbekende response ontvangen!');
   }
 }
+
+
+//async function calculateSignature(signedXmlStr){
+//    // Parse XML
+//  const doc = new DOMParser().parseFromString(signedXmlStr,'application/xml');
+//  const select = xpath.useNamespaces({
+//    dsig: 'http://www.w3.org/2000/09/xmldsig#'
+//  });
+//
+//  // Zoek het SignedInfo-element
+//  const signedInfoNode = select('//ds:SignedInfo', doc)[0];
+//  if (!signedInfoNode) throw new Error('Geen <SignedInfo> gevonden');
+//
+//  // Canonicaliseer met exclusive c14n
+//  const canonizedSignedInfo = new SignedXml().getCanonXml(
+//    signedInfoNode,
+//    { inclusiveNamespacesPrefixList: '' } // pas aan indien nodig
+//  );
+//
+//  // Genereer SignatureValue met private key
+//  const signature = crypto.createSign('RSA-SHA256');
+//  signature.update(canonizedSignedInfo);
+//  signature.end();
+//  const signatureValue = signature.sign(privateKey, 'base64');
+//
+//  console.log('✅ Nieuwe SignatureValue:\n', signatureValue);
+//
+//  // Vervang de oude SignatureValue
+//  const signatureValueNode = select('//ds:SignatureValue', doc)[0];
+//  if (!signatureValueNode) throw new Error('Geen <SignatureValue> gevonden');
+//  signatureValueNode.textContent = signatureValue;
+//
+//  // Schrijf naar bestand
+//  const updatedXml = new XMLSerializer().serializeToString(doc);
+//  fs.writeFileSync('outgoing_soap_signed.xml', updatedXml, 'utf8');
+//
+//  console.log('📄 Handtekening bijgewerkt in outgoing_soap_signed.xml');
+//}
+
+function canonicalizeXml(xmlString) {
+  return xmlString
+    .replace(/\r?\n/g, '') // verwijder line breaks
+    .replace(/>\s+</g, '><') // verwijder indenting
+    .replace(/<!--[\s\S]*?-->/g, '') // verwijder comments
+    .replace(/\s{2,}/g, ' ') // multiple spaces -> 1 space
+    .trim();
+}
+
 
 
 sendEnergyAccount();
