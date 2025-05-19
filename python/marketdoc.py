@@ -163,7 +163,8 @@ wsse = CustomSignature(
 )
 
 # Apply the signature
-signed_envelope, _ = wsse.apply(soap_tree, headers={})
+signed_envelope, _ = wsse.apply(soap_tree.getroot(), headers={})
+#signed_envelope, _ = wsse.apply(soap_tree, headers={})
 
 # Convert to string and print
 signed_xml = etree.tostring(signed_envelope, pretty_print=True, encoding='utf-8', xml_declaration=True).decode('utf-8')
