@@ -5,6 +5,7 @@ import random
 import uuid as uuidlib
 from signature import CustomSignature
 import xmlsec
+import requests
 
 
 
@@ -171,14 +172,14 @@ signed_xml = etree.tostring(signed_envelope, pretty_print=True, encoding='utf-8'
 print(signed_xml)
 
 # Optional: Send to TenneT (uncomment to use)
-"""
-import requests
+
+
 response = requests.post(
-    url="https://your-tennet-endpoint",
+    url="http://localhost:8081/AncillaryServices/EnergyAccount/v1.0",
     data=signed_xml,
     headers={"Content-Type": "text/xml"}
 )
 print("Status:", response.status_code)
 print(response.text)
-"""
+
 
