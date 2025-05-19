@@ -155,8 +155,8 @@ soap_tree = build_unsigned_soap(body_tree, sender_id=params["senderId"], receive
 
 # Create WSSE signature object
 wsse = CustomSignature(
-    key_file='certificates/your-sign-private.pem',
-    certfile='certificates/your-sign-public.pem',
+    key_file='certificates/smime-covolt-key_staging.key',
+    certfile='certificates/smime-covolt-pub_staging.pem',
     counter_part_cert= None,
     signature_method=xmlsec.constants.TransformRsaSha256,
     digest_method=xmlsec.constants.TransformSha256
