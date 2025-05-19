@@ -17,28 +17,22 @@ const { DOMParser, XMLSerializer } = require('@xmldom/xmldom');
 
 
 
-//only to check the key
-//const certPem = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
-//const certA = forge.pki.certificateFromPem(certPem);
-//const skiExtA = certA.getExtension('subjectKeyIdentifier');
-//const skiBase64A = Buffer.from(skiExtA.subjectKeyIdentifier, 'hex').toString('base64');
-//
-//console.log(skiBase64A);
-
 const signature_id = uuidv4();
 const reference_uri = uuidv4();
 const keyinfo_id = uuidv4();
 const other_id = uuidv4();
 
-const privateKey = fs.readFileSync('./sign-cert/s-mimi-staging.key', 'utf8');
-const certificate = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
+const privateKey = fs.readFileSync('./sign-cert/smime-staging/smime-covolt-key_staging.key', 'utf8');
+const certificate = fs.readFileSync('./sign-cert/smime-staging/service-nl_covolt_eu.crt', 'utf8');
 
 
-const pem = fs.readFileSync('./sign-cert/service-nl_covolt_eu.crt', 'utf8');
-const cert = forge.pki.certificateFromPem(pem);
+const cert = forge.pki.certificateFromPem(certificate);
 
 const skiExt = cert.getExtension('subjectKeyIdentifier');
-const skiBase64 = Buffer.from(skiExt.subjectKeyIdentifier, 'hex').toString('base64');
+console.log(skiExt)
+let skiBase64 = Buffer.from(skiExt.subjectKeyIdentifier, 'hex').toString('base64');
+skiBase64 = 'uBNiKsepOdnEocxddcYPofPwi8Q='
+console.log(skiBase64)
 
 
 const keyInfoBlock = `
@@ -72,8 +66,8 @@ function generatePoints(startLocal,stopLocal,intervalSeconds) {
   const duurInUren = duurInMilliseconden / (1000 * 60 * 60);
 
 
- const numPoints = (duurInUren * 60 * 60) / intervalSeconds
- //const numPoints = 10
+ //const numPoints = (duurInUren * 60 * 60) / intervalSeconds
+ const numPoints = 10
 //    let currentUTC = DateTime.fromISO(utcStart, { zone: 'utc' });
 //  
   for (let i = 1; i <= numPoints; i++) {

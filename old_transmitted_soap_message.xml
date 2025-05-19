@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Header>
+    <MessageAddressing xmlns="http://sys.svc.tennet.nl/MMCHub/Header/v1">
+      <technicalMessageId>ee1a1b0a-ec89-446a-91aa-15abc0fd4b7a</technicalMessageId>
+      <correlationId>ee1a1b0a-ec89-446a-91aa-15abc0fd4b7a</correlationId>
+      <senderId>8719333027500</senderId>
+      <receiverId>8716867999983</receiverId>
+      <carrierId>8719333027500</carrierId>
+      <contentType>ACTIVATED_FCR</contentType>
+    </MessageAddressing>
+    <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" soap:mustUnderstand="1"><dsig:Signature xmlns:dsig="http://www.w3.org/2000/09/xmldsig#"><dsig:SignedInfo><dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#">
+     <c14nEx:InclusiveNamespaces xmlns:c14nEx="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList="soapenv"/>
+   </dsig:CanonicalizationMethod><dsig:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/><dsig:Reference URI="#494a7da5-201d-484a-a439-0fa1e822f766"><dsig:Transforms><dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"><c14nEx:InclusiveNamespaces xmlns:c14nEx="http://www.w3.org/2001/10/xml-exc-c14n#" PrefixList=""/></dsig:Transform></dsig:Transforms><dsig:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><dsig:DigestValue>NnBF9e+WW6SyYSFD4hGPJBiiHGrePZHPlohYZOKGSH4=</dsig:DigestValue></dsig:Reference></dsig:SignedInfo><dsig:SignatureValue>V7j7Nf6sOnvoNO7r+C0Atodf9JCPxL+euoeZxcPnYlKVHvSPatOFrfIVrZFz8iv9/xdIYehjaKomjJbsL3M3Q0qpXcujliArpC+pA1RzRqg8Sl7hwAWuNSHG7hoWqjWr4OBWTpi9DeB4FLyBoo49nW02kdSB9NSnnHp0F0nULWCOKpDmCs+Mm/5UJ2wrLKgqU4qGFIW25DPfW3zB8pnjo3IGSw3iMfS8e/HN36X7vz7JHsCz1j7UsCAw/kWdfuQYRV5mWnduriTmOFqj93juKDONZuQA8GR9+4KCu3psYfjsOBBBJ37YewtM44S6zs28QNlt3Btod0VS/FO7joeNdw==</dsig:SignatureValue>
+<dsig:KeyInfo Id="f39e857e-347f-495f-bc83-fe0537358d7c">
+  <wsse:SecurityTokenReference xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="4d325b85-0d62-4e48-98f1-8a1d0ac9983e">
+    <wsse:KeyIdentifier EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary" ValueType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier">
+      uBNiKsepOdnEocxdbcYPofPwi8Q=
+    </wsse:KeyIdentifier>
+  </wsse:SecurityTokenReference>
+</dsig:KeyInfo></dsig:Signature></wsse:Security>
+  </soapenv:Header>
+  <soapenv:Body xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="494a7da5-201d-484a-a439-0fa1e822f766">
+    <EnergyAccount_MarketDocument xmlns="urn:iec62325.351:tc57wg16:451-4:energyaccountdocument:4:0">
+      <mRID>DOC-FCR-20250514-0001</mRID>
+      <revisionNumber>1</revisionNumber>
+      <type>A45</type>
+      <docStatus>
+        <value>A07</value>
+      </docStatus>
+      <process.processType>A28</process.processType>
+      <process.classificationType>A02</process.classificationType>
+      <sender_MarketParticipant.mRID codingScheme="A01">8719333027500</sender_MarketParticipant.mRID>
+      <sender_MarketParticipant.marketRole.type>A12</sender_MarketParticipant.marketRole.type>
+      <receiver_MarketParticipant.mRID codingScheme="A01">8716867999983</receiver_MarketParticipant.mRID>
+      <receiver_MarketParticipant.marketRole.type>A04</receiver_MarketParticipant.marketRole.type>
+      <createdDateTime>2025-05-14T12:00:00Z</createdDateTime>
+      <period.timeInterval>
+        <start>2025-05-14T22:00Z</start>
+        <end>2025-05-16T02:00Z</end>
+      </period.timeInterval>
+      <TimeSeries>
+        <mRID>TS-20250514-01</mRID>
+        <businessType>A11</businessType>
+        <product>8716867000016</product>
+        <objectAggregation>A02</objectAggregation>
+        <area_Domain.mRID codingScheme="A01">10YNL----------L</area_Domain.mRID>
+        <measure_Unit.name>MAW</measure_Unit.name>
+        <currency_Unit.name>EUR</currency_Unit.name>
+        <marketEvaluationPoint.mRID codingScheme="A01">871687910000500037</marketEvaluationPoint.mRID>
+        <Period>
+          <timeInterval>
+            <start>2025-05-14T22:00Z</start>
+            <end>2025-05-16T02:00Z</end>
+          </timeInterval>
+          <resolution>PT1S</resolution>
+          <Point>
+            <position>1</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>454.920196</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>2</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>185.627428</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>3</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>101.818473</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>4</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>178.804409</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>5</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>269.746595</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>6</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>638.644790</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>7</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>295.953354</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>8</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>219.020464</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>9</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>803.395002</out_Quantity.quantity>
+          </Point>
+          <Point>
+            <position>10</position>
+            <in_Quantity.quantity>0.000000</in_Quantity.quantity>
+            <out_Quantity.quantity>544.541537</out_Quantity.quantity>
+          </Point>
+        </Period>
+      </TimeSeries>
+    </EnergyAccount_MarketDocument>
+  </soapenv:Body>
+</soapenv:Envelope>
