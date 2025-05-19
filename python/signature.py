@@ -21,15 +21,23 @@ def get_key_identifier(path_to_public_key):
 
 
 class CustomSignature(Signature):
-    def __init__(self, key_file, certfile, counter_part_cert, password=None, signature_method=None, digest_method=None):
+    def __init__(self, key_file, certfile, counter_part_cert=None, password=None, signature_method=None, digest_method=None):
         self.ski = get_key_identifier(certfile)
-        self.counter_part_cert = _read_file(counter_part_cert)
+
+        if counter_part_cert:
+            self.counter_part_cert = _read_file(counter_part_cert)
+        else:
+            self.counter_part_cert = None
+
         super().__init__(key_file, certfile, password, signature_method, digest_method)
 
     def verify(self, envelope):
+        if not self.counter_part_cert:
+            raise ValueError("No counter party cert available for verification.")
         key = _make_verify_key(self.counter_part_cert)
         _verify_envelope_with_key(envelope, key)
         return envelope
+
 
     def apply(self, envelope, headers):
         logging.debug("CustomSignature: apply called")
