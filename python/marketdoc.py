@@ -90,25 +90,28 @@ def build_energy_account_xml(params):
 
 def build_unsigned_soap(body_tree, sender_id, receiver_id, reference_uri):
     NSMAP = {
-        'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-        'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-        'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
-        'wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
+        'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
+        #'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
+        #'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
+        #'wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
     }
 
     envelope = etree.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope', nsmap=NSMAP)
     header = etree.SubElement(envelope, '{http://schemas.xmlsoap.org/soap/envelope/}Header')
 
     technical_message_id = str(uuidlib.uuid4())
-    ns = "http://sys.svc.tennet.nl/MMCHub/Header/v1"
+    #ns = "http://sys.svc.tennet.nl/MMCHub/Header/v1"
 
-    ma = etree.SubElement(header, f'{{{ns}}}MessageAddressing')
-    etree.SubElement(ma, f'{{{ns}}}technicalMessageId').text = technical_message_id
-    etree.SubElement(ma, f'{{{ns}}}correlationId').text = technical_message_id
-    etree.SubElement(ma, f'{{{ns}}}senderId').text = sender_id
-    etree.SubElement(ma, f'{{{ns}}}receiverId').text = receiver_id
-    etree.SubElement(ma, f'{{{ns}}}carrierId').text = sender_id
-    etree.SubElement(ma, f'{{{ns}}}contentType').text = 'ACTIVATED_FCR'
+    #ma = etree.SubElement(header, f'{{{ns}}}MessageAddressing')
+
+    ma = etree.Element("MessageAddressing", nsmap={None: "http://sys.svc.tennet.nl/MMCHub/Header/v1"})
+    header.append(ma)
+    etree.SubElement(ma, 'technicalMessageId').text = technical_message_id
+    etree.SubElement(ma, 'correlationId').text = technical_message_id
+    etree.SubElement(ma, 'senderId').text = sender_id
+    etree.SubElement(ma, 'receiverId').text = receiver_id
+    etree.SubElement(ma, 'carrierId').text = sender_id
+    etree.SubElement(ma, 'contentType').text = 'ACTIVATED_FCR'
 
     # WSSE Security block (empty for now, will be filled during signing)
     etree.SubElement(header, '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Security', attrib={
