@@ -5,7 +5,9 @@ import random
 import uuid as uuidlib
 from signature import CustomSignature
 import xmlsec
-import requests
+#import requests
+from lxml.etree import QName
+
 
 
 
@@ -90,9 +92,9 @@ def build_energy_account_xml(params):
 
 def build_unsigned_soap(body_tree, sender_id, receiver_id, reference_uri):
     NSMAP = {
-        'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
-        #'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-        #'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
+        'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
+        'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'
+        #'soap': 'http://schemas.xmlsoap.org/soap/envelope/'
         #'wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
     }
 
@@ -113,10 +115,13 @@ def build_unsigned_soap(body_tree, sender_id, receiver_id, reference_uri):
     etree.SubElement(ma, 'carrierId').text = sender_id
     etree.SubElement(ma, 'contentType').text = 'ACTIVATED_FCR'
 
-    # WSSE Security block (empty for now, will be filled during signing)
-    etree.SubElement(header, '{http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd}Security', attrib={
-        '{http://schemas.xmlsoap.org/soap/envelope/}mustUnderstand': '1'
-    })
+      # Correct and only one WSSE:Security block
+    etree.SubElement(
+        header,
+        QName(NSMAP['wsse'], 'Security'),
+        attrib={QName(NSMAP['soapenv'], 'mustUnderstand'): '1'}
+    )
+
 
     # Body with reference ID
     body = etree.SubElement(envelope, '{http://schemas.xmlsoap.org/soap/envelope/}Body', attrib={
@@ -177,12 +182,12 @@ print(signed_xml)
 # Optional: Send to TenneT (uncomment to use)
 
 
-response = requests.post(
-    url="http://localhost:8081/AncillaryServices/EnergyAccount/v1.0",
-    data=signed_xml,
-    headers={"Content-Type": "text/xml"}
-)
-print("Status:", response.status_code)
-print(response.text)
+#response = requests.post(
+#    url="http://localhost:8081/AncillaryServices/EnergyAccount/v1.0",
+#    data=signed_xml,
+#    headers={"Content-Type": "text/xml"}
+#)
+#print("Status:", response.status_code)
+#print(response.text)
 
 
