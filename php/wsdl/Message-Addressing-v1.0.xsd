@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://sys.svc.tennet.nl/MMCHub/Header/v1" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://sys.svc.tennet.nl/MMCHub/Header/v1" xmlns:common="http://sys.svc.tennet.nl/MMCHub/common/v1">
+  <xs:import schemaLocation="CommonTypes-v1.0.xsd" namespace="http://sys.svc.tennet.nl/MMCHub/common/v1"/>
+  <xs:element name="MessageAddressing" type="tns:MessageAddressing"/>
+  <xs:complexType name="MessageAddressing">
+    <xs:sequence>
+      <xs:element type="common:UUID" name="technicalMessageId" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="common:UUID" name="correlationId" minOccurs="0" maxOccurs="1"/>
+      <xs:element type="common:EAN" name="senderId" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="common:EAN" name="receiverId" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="common:EAN" name="carrierId" minOccurs="1" maxOccurs="1"/>
+      <xs:element type="xs:string" name="contentType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

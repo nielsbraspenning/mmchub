@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://tennet.eu/cdm/tennet/v1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:tns="http://tennet.eu/cdm/tennet/v1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="Version">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ServiceVersion" type="tns:VersionType"/>
+        <xsd:element name="Component" minOccurs="0" maxOccurs="unbounded">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="ComponentName" type="xsd:string"/>
+              <xsd:element name="ComponentVersion" type="tns:VersionType"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:simpleType name="VersionType">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="\d{1,2}\.\d{1,3}(\.\d{1,3})?"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

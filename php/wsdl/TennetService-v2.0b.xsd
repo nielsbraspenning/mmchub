@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://tennet.eu/cdm/tennet/TennetService/Message/v2.0" elementFormDefault="qualified" attributeFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tennet="http://tennet.eu/cdm/tennet/v1.0">
+  <xsd:import namespace="http://tennet.eu/cdm/tennet/v1.0" schemaLocation="Tennet-v1.0b.xsd"/>
+  <xsd:element name="IsAliveRequestMessage">
+    <xsd:complexType>
+      <xsd:sequence/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="IsAliveResponseMessage">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="tennet:Version"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
