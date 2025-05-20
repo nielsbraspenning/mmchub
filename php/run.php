@@ -36,7 +36,13 @@ $key->loadKey($signingKey, true);
 
 // Attach the certificate using SubjectKeyIdentifier
 $objWSSE->signSoapDoc($key);
-$objWSSE->add509Cert(file_get_contents($signingCert), true, false, ['subjectKeyIdentifier' => true]);
+
+$certContent = file_get_contents($signingCert);
+$token = $objWSSE->addBinaryToken($certContent);
+
+// Attach the BinarySecurityToken to the Signature using SubjectKeyIdentifier
+$objWSSE->attachTokentoSig($token, true);
+
 
 // Output the signed XML
 echo $objWSSE->saveXML();
