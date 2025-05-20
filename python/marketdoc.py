@@ -8,16 +8,13 @@ import xmlsec
 #import requests
 from lxml.etree import QName
 
-NSMAPENV = {
-    'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
 
-}
 
-NSMAPWSSE = {
+NSMAP = {
     'wsse': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd',
-    'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/'
-    #'soap': 'http://schemas.xmlsoap.org/soap/envelope/'
-    #'wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
+    'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
+    'soap': 'http://schemas.xmlsoap.org/soap/envelope/',
+    'wsu': 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'
 }
 
 
@@ -105,7 +102,7 @@ def build_energy_account_xml(params):
 def build_unsigned_soap(body_tree, sender_id, receiver_id, reference_uri):
 
 
-    envelope = etree.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope', nsmap=NSMAPENV)
+    envelope = etree.Element('{http://schemas.xmlsoap.org/soap/envelope/}Envelope', nsmap=NSMAP)
     header = etree.SubElement(envelope, '{http://schemas.xmlsoap.org/soap/envelope/}Header')
 
     technical_message_id = str(uuidlib.uuid4())
@@ -125,8 +122,8 @@ def build_unsigned_soap(body_tree, sender_id, receiver_id, reference_uri):
       # Correct and only one WSSE:Security block
     etree.SubElement(
         header,
-        QName(NSMAPWSSE['wsse'], 'Security'),
-        attrib={QName(NSMAPWSSE['soapenv'], 'mustUnderstand'): '1'}
+        QName(NSMAP['wsse'], 'Security'),
+        attrib={QName(NSMAP['soapenv'], 'mustUnderstand'): '1'}
     )
 
 
