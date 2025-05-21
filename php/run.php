@@ -36,13 +36,14 @@ $doc->loadXML($request);
 
 // === WSSE handler ===
 $objWSSE = new WSSESoap($doc);
-//$objWSSE->addTimestamp();
+$objWSSE->addTimestamp();
 
 // === Load private key ===
 $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 
 // === Sign the SOAP message ===
+$key->algorithm = XMLSecurityDSig::SHA256;
 $objWSSE->signSoapDoc($key);
 
 // === Load certificate and attach as BinarySecurityToken ===
@@ -53,19 +54,6 @@ $token = $objWSSE->addBinaryToken($certContent);
 $objWSSE->attachTokentoSig($token, false, true);
 
 
-// === Load certificate and attach as BinarySecurityToken ===
-//$certContent = file_get_contents($signingCert);
-//$token = $objWSSE->addBinaryToken($certContent);
-//
-//// === Load private key ===
-//$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
-//$key->loadKey($signingKey, true);
-//
-//// === Attach BinarySecurityToken to signature using SubjectKeyIdentifier ===
-//$objWSSE->attachTokentoSig($token, false, true);  // false = geen Reference, true = gebruik SKI
-//
-//// === Sign the SOAP message ===
-//$objWSSE->signSoapDoc($key);
 
 // === Output signed XML ===
 echo $objWSSE->saveXML();
