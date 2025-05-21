@@ -12,7 +12,16 @@ $signingKey  = __DIR__ . '/certs/smime-covolt-key_staging.key';
 // === Dummy SOAP message ===
 $request = <<<XML
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-  <soapenv:Header/>
+  <soapenv:Header>
+      <MessageAddressing xmlns="http://sys.svc.tennet.nl/MMCHub/Header/v1">
+      <technicalMessageId>ee1a1b0a-ec89-446a-91aa-15abc0fd4b7a</technicalMessageId>
+      <correlationId>ee1a1b0a-ec89-446a-91aa-15abc0fd4b7a</correlationId>
+      <senderId>8719333027500</senderId>
+      <receiverId>8716867999983</receiverId>
+      <carrierId>8719333027500</carrierId>
+      <contentType>ACTIVATED_FCR</contentType>
+    </MessageAddressing>
+  </soapenv:Header>
   <soapenv:Body xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="Body">
     <example:Hello xmlns:example="http://example.com">
       <example:Name>Test</example:Name>
