@@ -45,8 +45,8 @@ $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 
 // === Sign the SOAP message ===
-$key->algorithm = XMLSecurityDSig::SHA256;
-echo $key;
+$key = new XMLSecurityKey(XMLSecurityKey::SHA256, ...);
+//$key->algorithm = XMLSecurityDSig::SHA256;
 $objWSSE->signSoapDoc($key);
 
 // === Load certificate and attach as BinarySecurityToken ===
