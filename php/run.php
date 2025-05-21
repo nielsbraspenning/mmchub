@@ -41,7 +41,7 @@ $certContent = file_get_contents($signingCert);
 $token = $objWSSE->addBinaryToken($certContent);
 
 // Attach the BinarySecurityToken to the Signature using SubjectKeyIdentifier
-$objWSSE->attachTokentoSig($token, true);
+$objWSSE->attachTokentoSig($token, false, true);
 
 
 // Output the signed XML
