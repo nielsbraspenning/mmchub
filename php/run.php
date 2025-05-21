@@ -4,6 +4,8 @@ require __DIR__ . '/vendor/autoload.php';
 
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 use RobRichards\WsePhp\WSSESoap;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+
 
 // === CONFIG ===
 $signingCert = __DIR__ . '/certs/smime-covolt-pub_staging.pem';
