@@ -5,16 +5,15 @@ require __DIR__ . '/vendor/autoload.php';
 use RobRichards\XMLSecLibs\XMLSecurityKey;
 use RobRichards\WsePhp\WSSESoap;
 
-$wsdl = __DIR__ . '/wsdl/your.wsdl';
-$options = ['trace' => 1, 'exceptions' => true];
+// === CONFIG ===
 $signingCert = __DIR__ . '/certs/smime-covolt-pub_staging.pem';
-$signingKey = __DIR__ . '/certs/smime-covolt-key_staging.key';
+$signingKey  = __DIR__ . '/certs/smime-covolt-key_staging.key';
 
-// Create a minimal dummy SOAP request (or later call your actual method)
+// === Dummy SOAP message ===
 $request = <<<XML
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
   <soapenv:Header/>
-  <soapenv:Body>
+  <soapenv:Body xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" wsu:Id="Body">
     <example:Hello xmlns:example="http://example.com">
       <example:Name>Test</example:Name>
     </example:Hello>
@@ -22,27 +21,27 @@ $request = <<<XML
 </soapenv:Envelope>
 XML;
 
-// Load into DOM
+// === Load into DOMDocument ===
 $doc = new DOMDocument();
 $doc->loadXML($request);
 
-// Create WSSE signer
+// === WSSE handler ===
 $objWSSE = new WSSESoap($doc);
-$objWSSE->addTimestamp();
+//$objWSSE->addTimestamp();
 
-// Sign using SubjectKeyIdentifier
-$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type'=>'private']);
-$key->loadKey($signingKey, true);
-
-// Attach the certificate using SubjectKeyIdentifier
-$objWSSE->signSoapDoc($key);
-
+// === Load certificate and attach as BinarySecurityToken ===
 $certContent = file_get_contents($signingCert);
 $token = $objWSSE->addBinaryToken($certContent);
 
-// Attach the BinarySecurityToken to the Signature using SubjectKeyIdentifier
-$objWSSE->attachTokentoSig($token, false, true);
+// === Load private key ===
+$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
+$key->loadKey($signingKey, true);
 
+// === Attach BinarySecurityToken to signature using SubjectKeyIdentifier ===
+$objWSSE->attachTokentoSig($token, false, true);  // false = geen Reference, true = gebruik SKI
 
-// Output the signed XML
+// === Sign the SOAP message ===
+$objWSSE->signSoapDoc($key);
+
+// === Output signed XML ===
 echo $objWSSE->saveXML();
