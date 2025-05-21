@@ -49,12 +49,15 @@ $bodyNode = $xpath->query('//soapenv:Body')->item(0);
 $timestampNode = $xpath->query('//wsu:Timestamp')->item(0);
 
 // Ensure both have IDs
-$bodyId = $bodyNode->getAttributeNS(XMLSecurityDSig::WSUNS, 'Id') ?: 'Body';
-$timestampId = $timestampNode->getAttributeNS(XMLSecurityDSig::WSUNS, 'Id');
+$wsuNS = 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd';
 
-if (!$bodyNode->hasAttributeNS(XMLSecurityDSig::WSUNS, 'Id')) {
-    $bodyNode->setAttributeNS(XMLSecurityDSig::WSUNS, 'wsu:Id', $bodyId);
+$bodyId = $bodyNode->getAttributeNS($wsuNS, 'Id') ?: 'Body';
+$timestampId = $timestampNode->getAttributeNS($wsuNS, 'Id');
+
+if (!$bodyNode->hasAttributeNS($wsuNS, 'Id')) {
+    $bodyNode->setAttributeNS($wsuNS, 'wsu:Id', $bodyId);
 }
+
 
 // === Load private key ===
 $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
