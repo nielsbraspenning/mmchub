@@ -39,45 +39,43 @@ $doc->loadXML($request);
 $objWSSE = new WSSESoap($doc);
 $objWSSE->addTimestamp();
 
-// === Load private key ===
-$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
-$key->loadKey($signingKey, true);
-
-// === Sign the SOAP message (returns the ds:Signature object) ===
-$dsig = $objWSSE->signSoapDoc($key);
-
-// === Set SHA256 digest explicitly for Body and Timestamp ===
+// === XPath helper ===
 $xpath = new DOMXPath($doc);
 $xpath->registerNamespace("soapenv", "http://schemas.xmlsoap.org/soap/envelope/");
 $xpath->registerNamespace("wsu", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd");
 
-// Get Body node and its wsu:Id
+// === Get Body and Timestamp nodes ===
 $bodyNode = $xpath->query('//soapenv:Body')->item(0);
-$bodyId = $bodyNode->getAttributeNS('http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', 'Id');
+$timestampNode = $xpath->query('//wsu:Timestamp')->item(0);
 
-// If no wsu:Id was set, set one now
-if (!$bodyId) {
-    $bodyId = 'Body';
-    $bodyNode->setAttributeNS('http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', 'wsu:Id', $bodyId);
+// Ensure both have IDs
+$bodyId = $bodyNode->getAttributeNS(XMLSecurityDSig::WSUNS, 'Id') ?: 'Body';
+$timestampId = $timestampNode->getAttributeNS(XMLSecurityDSig::WSUNS, 'Id');
+
+if (!$bodyNode->hasAttributeNS(XMLSecurityDSig::WSUNS, 'Id')) {
+    $bodyNode->setAttributeNS(XMLSecurityDSig::WSUNS, 'wsu:Id', $bodyId);
 }
 
-$dsig->addReference(
-    $bodyNode,
+// === Load private key ===
+$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
+$key->loadKey($signingKey, true);
+
+// === Set up DSig ===
+$dsig = new XMLSecurityDSig();
+$dsig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
+
+// Sign both Body and Timestamp using SHA256
+$dsig->addReferenceList(
+    [$bodyNode, $timestampNode],
     XMLSecurityDSig::SHA256,
     ['http://www.w3.org/2001/10/xml-exc-c14n#'],
-    ['uri' => '#' . $bodyId]
+    ['uri' => ['#' . $bodyId, '#' . $timestampId]],
+    ['id_name' => 'Id', 'overwrite' => false]
 );
 
-// Get Timestamp node and its wsu:Id
-$timestampNode = $xpath->query('//wsu:Timestamp')->item(0);
-$timestampId = $timestampNode->getAttributeNS('http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd', 'Id');
-
-$dsig->addReference(
-    $timestampNode,
-    XMLSecurityDSig::SHA256,
-    ['http://www.w3.org/2001/10/xml-exc-c14n#'],
-    ['uri' => '#' . $timestampId]
-);
+// Sign and attach to Security header
+$dsig->sign($key);
+$dsig->appendSignature($objWSSE->securityNode, true);
 
 // === Load certificate and attach as BinarySecurityToken ===
 $certContent = file_get_contents($signingCert);
