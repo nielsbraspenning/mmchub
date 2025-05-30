@@ -158,8 +158,8 @@ $key->loadKey($signingKey, true);
 //$objWSSE->signSoapDoc($key);
 
 // === Load certificate and attach as BinarySecurityToken ===
-//$certContent = file_get_contents($signingCert);
-//$token = $objWSSE->addBinaryToken($certContent);
+$certContent = file_get_contents($signingCert);
+$token = $objWSSE->addBinaryToken($certContent);
 
 // === Attach BinarySecurityToken using SubjectKeyIdentifier ===
 //$objWSSE->attachTokentoSig($token, false, true);
