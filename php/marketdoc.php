@@ -147,22 +147,31 @@ $bodyNode->appendChild($imported);
 
 // === WSSE handler ===
 $objWSSE = new WSSESoap($doc);
-$objWSSE->addTimestamp();
+//$objWSSE->addTimestamp();
 
 // === Load private key ===
 $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 
 // === Sign the SOAP message ===
-$key->algorithm = XMLSecurityDSig::SHA256;
-$objWSSE->signSoapDoc($key);
+//$key->algorithm = XMLSecurityDSig::SHA256;
+//$objWSSE->signSoapDoc($key);
 
 // === Load certificate and attach as BinarySecurityToken ===
-$certContent = file_get_contents($signingCert);
-$token = $objWSSE->addBinaryToken($certContent);
+//$certContent = file_get_contents($signingCert);
+//$token = $objWSSE->addBinaryToken($certContent);
 
 // === Attach BinarySecurityToken using SubjectKeyIdentifier ===
-$objWSSE->attachTokentoSig($token, false, true);
+//$objWSSE->attachTokentoSig($token, false, true);
+
+// === Load private key and sign with KeyIdentifier
+//$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
+//$key->loadKey($signingKey, true);
+
+$objWSSE->signSoapDoc($key, [
+  'algorithm' => XMLSecurityDSig::SHA256,
+  'KeyInfo' => ['X509SubjectKeyIdentifier' => true]
+]);
 
 // === Output signed XML ===
 $doc->formatOutput = true;
