@@ -150,16 +150,18 @@ $objWSSE = new WSSESoap($doc);
 //$objWSSE->addTimestamp();
 
 // === Load private key ===
-$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
-$key->loadKey($signingKey, true);
+//$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
+//$key->loadKey($signingKey, true);
 
 // === Sign the SOAP message ===
 //$key->algorithm = XMLSecurityDSig::SHA256;
 //$objWSSE->signSoapDoc($key);
 
 // === Load certificate and attach as BinarySecurityToken ===
-$certContent = file_get_contents($signingCert);
-$token = $objWSSE->addBinaryToken($certContent);
+//$certContent = file_get_contents($signingCert);
+//$token = $objWSSE->addBinaryToken($certContent);
+
+//echo $token
 
 // === Attach BinarySecurityToken using SubjectKeyIdentifier ===
 //$objWSSE->attachTokentoSig($token, false, true);
@@ -167,6 +169,12 @@ $token = $objWSSE->addBinaryToken($certContent);
 // === Load private key and sign with KeyIdentifier
 //$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 //$key->loadKey($signingKey, true);
+
+
+
+$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
+$key->loadKey($signingKey, true);
+$key->cert = file_get_contents($signingCert); // Required for SubjectKeyIdentifier
 
 $objWSSE->signSoapDoc($key, [
   'algorithm' => XMLSecurityDSig::SHA256,
