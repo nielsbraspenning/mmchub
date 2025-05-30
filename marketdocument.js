@@ -216,6 +216,8 @@ async function sendEnergyAccount() {
   });
 
   const unsignedXml = buildUnsignedSOAP(bodyXmlBuilder, certificate);
+
+}
   //const unsignedXml = unsignedSoapBuilder.end({ prettyPrint: true });
 
 
