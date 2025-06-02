@@ -9,7 +9,7 @@ use RobRichards\XMLSecLibs\XMLSecurityDSig;
 // === CONFIG ===
 $signingCert = __DIR__ . '/certs/smime-covolt-pub_staging.pem';
 $signingKey  = __DIR__ . '/certs/smime-covolt-key_staging.key';
-$signingLeafCert  = __DIR__ . '/certs/smime-covotl-leaf_staging';
+$signingLeafCert  = __DIR__ . '/certs/smime-covotl-leaf_staging.pem';
 
 function generateEnergyAccountBody(array $params): DOMElement {
     $doc = new DOMDocument('1.0', 'UTF-8');
