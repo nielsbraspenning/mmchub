@@ -160,6 +160,9 @@ $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 $key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
 
+echo "Certificaat-inhoud:\n";
+echo $key->cert;
+
 // Onderteken de SOAP message
 $objWSSE->signSoapDoc($key, [
   'algorithm' => XMLSecurityDSig::SHA256,
