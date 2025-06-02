@@ -9,6 +9,7 @@ use RobRichards\XMLSecLibs\XMLSecurityDSig;
 // === CONFIG ===
 $signingCert = __DIR__ . '/certs/smime-covolt-pub_staging.pem';
 $signingKey  = __DIR__ . '/certs/smime-covolt-key_staging.key';
+$signingLeafCert  = __DIR__ . '/certs/smime-covotl-leaf_staging';
 
 function generateEnergyAccountBody(array $params): DOMElement {
     $doc = new DOMDocument('1.0', 'UTF-8');
@@ -160,16 +161,9 @@ $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 //$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
 
-$certFileContent = file_get_contents($signingCert);
+$certFileContent = file_get_contents($signingLeafCert);
 
-// Pak alleen het eerste blok BEGIN/END CERTIFICATE
-preg_match('/-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----/s', $certFileContent, $matches);
-
-if (!isset($matches[0])) {
-    die("❌ Geen geldig certificaat gevonden in het PEM-bestand.\n");
-}
-
-$key->cert = trim($matches[0]); // ← correcte vorm voor openssl_x509_parse()
+$key->cert = $certFileContent;  // ← correcte vorm voor openssl_x509_parse()
 
 
 
