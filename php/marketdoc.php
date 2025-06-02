@@ -158,7 +158,17 @@ $token = $objWSSE->addBinaryToken($certContent);
 // Laad de private key
 $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
-$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
+//$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
+
+
+
+$certChain = file_get_contents($signingCert);
+
+// Splits alle certificaten in het PEM-bestand
+$certs = preg_split('/(?=-----BEGIN CERTIFICATE-----)/', $certChain);
+
+// Gebruik alleen het eerste certificaat voor KeyIdentifier
+$key->cert = trim($certs[0]);
 
 echo "Certificaat-inhoud:\n";
 echo $key->cert;
