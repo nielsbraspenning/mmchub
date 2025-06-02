@@ -160,18 +160,19 @@ $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 //$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
 
+$certFileContent = file_get_contents($signingCert);
+
+// Pak alleen het eerste blok BEGIN/END CERTIFICATE
+preg_match('/-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----/s', $certFileContent, $matches);
+
+if (!isset($matches[0])) {
+    die("❌ Geen geldig certificaat gevonden in het PEM-bestand.\n");
+}
+
+$key->cert = trim($matches[0]); // ← correcte vorm voor openssl_x509_parse()
 
 
-$certChain = file_get_contents($signingCert);
 
-// Splits alle certificaten in het PEM-bestand
-$certs = preg_split('/(?=-----BEGIN CERTIFICATE-----)/', $certChain);
-
-// Gebruik alleen het eerste certificaat voor KeyIdentifier
-$key->cert = trim($certs[0]);
-
-echo "Certificaat-inhoud:\n";
-echo $key->cert;
 
 // Onderteken de SOAP message
 $objWSSE->signSoapDoc($key, [
