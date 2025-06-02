@@ -165,7 +165,8 @@ $certFileContent = file_get_contents($signingLeafCert);
 
 $key->cert = $certFileContent;  // ← correcte vorm voor openssl_x509_parse()
 
-
+echo 'certificaat :';
+echo $key->cert;
 
 
 // Onderteken de SOAP message
