@@ -164,7 +164,7 @@ $key->loadKey($signingKey, true);
 $certFileContent = file_get_contents($signingLeafCert);
 
 //$key->cert = $certFileContent;  // ← correcte vorm voor openssl_x509_parse()
-$key->setX509Certificate($certFileContent)
+$key->setX509Certificate($certFileContent);
 
 //$parsed = openssl_x509_parse($key->cert);
 //if (!$parsed) {
