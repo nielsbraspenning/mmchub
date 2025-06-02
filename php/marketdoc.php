@@ -163,15 +163,16 @@ $key->loadKey($signingKey, true);
 
 $certFileContent = file_get_contents($signingLeafCert);
 
-$key->cert = $certFileContent;  // ← correcte vorm voor openssl_x509_parse()
+//$key->cert = $certFileContent;  // ← correcte vorm voor openssl_x509_parse()
+$key->setX509Certificate($certFileContent)
 
-$parsed = openssl_x509_parse($key->cert);
-if (!$parsed) {
-    echo "❌ openssl_x509_parse() failed\n";
-} else {
-    echo "✅ openssl_x509_parse() success\n";
-    print_r($parsed['extensions']['subjectKeyIdentifier'] ?? 'Geen SKI gevonden');
-}
+//$parsed = openssl_x509_parse($key->cert);
+//if (!$parsed) {
+//    echo "❌ openssl_x509_parse() failed\n";
+//} else {
+//    echo "✅ openssl_x509_parse() success\n";
+//    print_r($parsed['extensions']['subjectKeyIdentifier'] ?? 'Geen SKI gevonden');
+//}
 
 
 // Onderteken de SOAP message
