@@ -148,57 +148,23 @@ $bodyNode->appendChild($imported);
 // === WSSE handler ===
 $objWSSE = new WSSESoap($doc);
 
-$objWSSE = new WSSESoap($doc);
-$objWSSE->addSecurityHeader(); // <- voeg dit toe!
+// Voeg de wsse:Security header toe (zonder username/password)
+$objWSSE->addUserToken('', '', false);
 
+// Laad het certificaat en voeg het toe als BinarySecurityToken
 $certContent = file_get_contents($signingCert);
 $token = $objWSSE->addBinaryToken($certContent);
 
+// Laad de private key
 $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
-$key->cert = file_get_contents($signingCert); // nodig voor SubjectKeyIdentifier
+$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
 
+// Onderteken de SOAP message
 $objWSSE->signSoapDoc($key, [
   'algorithm' => XMLSecurityDSig::SHA256,
   'KeyInfo' => ['X509SubjectKeyIdentifier' => true]
 ]);
 
-
-
-//$objWSSE->addTimestamp();
-
-// === Load private key ===
-//$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
-//$key->loadKey($signingKey, true);
-
-// === Sign the SOAP message ===
-//$key->algorithm = XMLSecurityDSig::SHA256;
-//$objWSSE->signSoapDoc($key);
-
-// === Load certificate and attach as BinarySecurityToken ===
-//$certContent = file_get_contents($signingCert);
-//$token = $objWSSE->addBinaryToken($certContent);
-//$token = $objWSSE->addBinaryToken($certContent); 
-//echo $token
-
-// === Attach BinarySecurityToken using SubjectKeyIdentifier ===
-//$objWSSE->attachTokentoSig($token, false, true);
-
-// === Load private key and sign with KeyIdentifier
-//$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
-//$key->loadKey($signingKey, true);
-
-
-
-//$key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
-//$key->loadKey($signingKey, true);
-//$key->cert = file_get_contents($signingCert); // Required for SubjectKeyIdentifier
-//
-//$objWSSE->signSoapDoc($key, [
-//  'algorithm' => XMLSecurityDSig::SHA256,
-//  'KeyInfo' => ['X509SubjectKeyIdentifier' => true]
-//]);
-
-// === Output signed XML ===
-$doc->formatOutput = true;
+// Print de volledige signed SOAP
 echo $objWSSE->saveXML();
