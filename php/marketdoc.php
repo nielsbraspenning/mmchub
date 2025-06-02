@@ -161,25 +161,5 @@ $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
 //$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
 
-$certFileContent = file_get_contents($signingLeafCert);
-
-//$key->cert = $certFileContent;  // ← correcte vorm voor openssl_x509_parse()
-$key->setX509Certificate($certFileContent);
-
-//$parsed = openssl_x509_parse($key->cert);
-//if (!$parsed) {
-//    echo "❌ openssl_x509_parse() failed\n";
-//} else {
-//    echo "✅ openssl_x509_parse() success\n";
-//    print_r($parsed['extensions']['subjectKeyIdentifier'] ?? 'Geen SKI gevonden');
-//}
-
-
-// Onderteken de SOAP message
-$objWSSE->signSoapDoc($key, [
-  'algorithm' => XMLSecurityDSig::SHA256,
-  'KeyInfo' => ['X509SubjectKeyIdentifier' => true]
-]);
-
 // Print de volledige signed SOAP
 echo $objWSSE->saveXML();
