@@ -9,7 +9,6 @@ use RobRichards\XMLSecLibs\XMLSecurityDSig;
 // === CONFIG ===
 $signingCert = __DIR__ . '/certs/smime-covolt-pub_staging.pem';
 $signingKey  = __DIR__ . '/certs/smime-covolt-key_staging.key';
-$signingLeafCert  = __DIR__ . '/certs/smime-covotl-leaf_staging.pem';
 
 function generateEnergyAccountBody(array $params): DOMElement {
     $doc = new DOMDocument('1.0', 'UTF-8');
@@ -60,7 +59,6 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $interval->appendChild($doc->createElement('end', $periodEnd));
     $root->appendChild($interval);
 
-    // TimeSeries
     $ts = $doc->createElement('TimeSeries');
     $addText($ts, 'mRID', $params['timeSeriesId']);
     $addText($ts, 'businessType', 'A11');
@@ -78,7 +76,6 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $mep->setAttribute('codingScheme', 'A01');
     $ts->appendChild($mep);
 
-    // Period
     $period = $doc->createElement('Period');
     $ti = $doc->createElement('timeInterval');
     $ti->appendChild($doc->createElement('start', $periodStart));
@@ -102,7 +99,7 @@ function generateEnergyAccountBody(array $params): DOMElement {
     return $doc->documentElement;
 }
 
-// === Dummy SOAP message (zonder body) ===
+// === Dummy SOAP message ===
 $request = <<<XML
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
@@ -121,11 +118,11 @@ $request = <<<XML
 </soapenv:Envelope>
 XML;
 
-// === Load into DOMDocument ===
+// === Load XML
 $doc = new DOMDocument();
 $doc->loadXML($request);
 
-// === Add generated Body content ===
+// === Add Body content
 $bodyElement = generateEnergyAccountBody([
     'mRID' => 'DOC-FCR-20250514-0001',
     'revisionNumber' => 1,
@@ -139,27 +136,36 @@ $bodyElement = generateEnergyAccountBody([
     'marketEvaluationPointId' => '871687910000500037',
     'sampleInterval' => 1
 ]);
-
 $xpath = new DOMXPath($doc);
 $xpath->registerNamespace('soapenv', 'http://schemas.xmlsoap.org/soap/envelope/');
 $bodyNode = $xpath->query('//soapenv:Body')->item(0);
 $imported = $doc->importNode($bodyElement, true);
 $bodyNode->appendChild($imported);
 
-// === WSSE handler ===
+// === WSSE & signing
 $objWSSE = new WSSESoap($doc);
+$objWSSE->addUserToken('', '', false); // empty user/pass
 
-// Voeg de wsse:Security header toe (zonder username/password)
-$objWSSE->addUserToken('', '', false);
-
-// Laad het certificaat en voeg het toe als BinarySecurityToken
+// Add BinarySecurityToken
 $certContent = file_get_contents($signingCert);
 $token = $objWSSE->addBinaryToken($certContent);
 
-// Laad de private key
+// Give token an ID
+$tokenId = 'X509Token';
+$token->setAttributeNS(
+    'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd',
+    'wsu:Id',
+    $tokenId
+);
+
+// Load private key
 $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
 $key->loadKey($signingKey, true);
-//$key->cert = $certContent; // Nodig voor SubjectKeyIdentifier
 
-// Print de volledige signed SOAP
+// Sign the SOAP Body
+$objWSSE->addReference($key, ['uri' => '#Body']);
+$objWSSE->signSoapDoc($key);
+$objWSSE->attachTokentoSig($tokenId);
+
+// Output signed SOAP
 echo $objWSSE->saveXML();
