@@ -161,7 +161,8 @@ class TennetSoap extends SoapClient
         echo $signedXml . "\n";
         echo "===========================\n";
 
-        return null; // or: return parent::__doRequest($signedXml, $location, $action, $version, $one_way);
+      //  return null; // or: return parent::__doRequest($signedXml, $location, $action, $version, $one_way);
+        return parent::__doRequest($signedXml, $location, $action, $version, $one_way);
     }
 }
 
@@ -198,15 +199,16 @@ $client = new TennetSoap(
     $signingCert,
     $signingKey,
     [
-        'location' => 'https://dummy.tennet.nl/endpoint',
+        'location' => 'http://localhost:8081/AncillaryServices/EnergyAccount/v1.0',
         'uri' => 'http://schemas.xmlsoap.org/soap/envelope/',
         'trace' => 1,
         'exceptions' => true
     ]
 );
 
+
 try {
-    $response = $client->__doRequest($requestBody, 'https://dummy.tennet.nl/endpoint', '', SOAP_1_1);
+    $response = $client->__doRequest($requestBody, 'http://localhost:8081/AncillaryServices/EnergyAccount/v1.0', '', SOAP_1_1);
     echo "Signed SOAP Response:\n\n$response";
 } catch (Exception $e) {
     echo "Error sending signed SOAP: " . $e->getMessage();
