@@ -11,6 +11,18 @@ $wsdl           =   null; // Or null if you're using __doRequest manually
 $signingCert    = __DIR__ . '/certs/smime-covolt-pub_staging.pem';
 $signingKey     = __DIR__ . '/certs/smime-covolt-key_staging.key';
 
+function generateUUIDv4(): string {
+    return sprintf(
+        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0x0fff) | 0x4000,
+        mt_rand(0, 0x3fff) | 0x8000,
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
+}
+
+
 
 function generateEnergyAccountBody(array $params): DOMElement {
     $doc = new DOMDocument('1.0', 'UTF-8');
@@ -168,14 +180,17 @@ class TennetSoap extends SoapClient
 
 
 // === Dummy SOAP envelope ===
+// Genereer één UUID
+$messageId = generateUUIDv4();
+
 $requestBody = <<<XML
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
                   xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
   <soapenv:Header>
     <MessageAddressing xmlns="http://sys.svc.tennet.nl/MMCHub/Header/v1">
-      <technicalMessageId>dummy-id-1234</technicalMessageId>
-      <correlationId>dummy-id-1234</correlationId>
+      <technicalMessageId>$messageId</technicalMessageId>
+      <correlationId>$messageId</correlationId>
       <senderId>8719333027500</senderId>
       <receiverId>8716867999983</receiverId>
       <carrierId>8719333027500</carrierId>
