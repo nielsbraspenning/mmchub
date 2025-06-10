@@ -108,7 +108,7 @@ function generateEnergyAccountBody(array $params): DOMElement {
 
 
     for ($i = 1; $i <= $numPoints; $i++) {
-        echo 'point generated ' . $i; 
+   
         $value = round(mt_rand(0, 999999999) / 1000000, 6);
         $point = $doc->createElement('Point');
         $addText($point, 'position', $i);
@@ -116,6 +116,7 @@ function generateEnergyAccountBody(array $params): DOMElement {
         $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
         $period->appendChild($point);
     }
+    echo 'generating points finished' ;
 
 
 
@@ -158,6 +159,8 @@ class TennetSoap extends SoapClient
             'sampleInterval' => 1
         ]);
 
+        echo 'body element is generared';
+
         // Insert into <soapenv:Body>
         $xpath = new DOMXPath($doc);
         $xpath->registerNamespace('soapenv', 'http://schemas.xmlsoap.org/soap/envelope/');
@@ -169,6 +172,7 @@ class TennetSoap extends SoapClient
             $bodyNode->removeChild($bodyNode->firstChild);
         }
 
+          echo 'do we end up here 1';
         $bodyNode->appendChild($importedBody);
 
         // Sign
@@ -179,6 +183,7 @@ class TennetSoap extends SoapClient
         $token = $wsse->addBinaryToken(file_get_contents($this->signingCert));
         $wsse->attachTokentoSig($token);
 
+          echo 'do we end up here 2';
         // Output
         $signedXml = $wsse->saveXML();
         echo "===== SIGNED SOAP XML =====\n";
