@@ -108,6 +108,7 @@ function generateEnergyAccountBody(array $params): DOMElement {
 
 
     for ($i = 1; $i <= $numPoints; $i++) {
+        echo 'point generated ' . i; 
         $value = round(mt_rand(0, 999999999) / 1000000, 6);
         $point = $doc->createElement('Point');
         $addText($point, 'position', $i);
