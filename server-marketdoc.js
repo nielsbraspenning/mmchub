@@ -17,7 +17,12 @@ app.post('/mmcHub/Response/Acknowledgement/v1.0', async (req, res) => {
 
   try {
     const parsed = await xml2js.parseStringPromise(rawXml, { explicitArray: false });
-    const correlationId = parsed?.['SOAP-ENV:Envelope']?.['SOAP-ENV:Body']?.['Acknowledgement']?.['ns2:correlationId'];
+//    const correlationId = parsed?.['SOAP-ENV:Envelope']?.['SOAP-ENV:Body']?.['Acknowledgement']?.['ns2:correlationId'];
+
+    const correlationId = parsed?.['soapenv:Envelope']?.['soapenv:Header']?.['MessageAddressing']?.['correlationId'] ||
+                          parsed?.['Envelope']?.['Header']?.['MessageAddressing']?.['correlationId'];
+
+    console.log('➡️ Correlation ID ontvangen van TenneT:', correlationId);
 
     const soapResponse = `
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
