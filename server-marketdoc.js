@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const app = express();
 const port = 3000;
+const xml2js = require('xml2js'); 
 
 app.use('/mmcHub/Response/Acknowledgement/v1.0', express.raw({
   type: (req) => true,
