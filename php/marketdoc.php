@@ -104,7 +104,7 @@ function generateEnergyAccountBody(array $params): DOMElement {
 
     $durationInSeconds = $end->getTimestamp() - $start->getTimestamp();
     $numPoints = $durationInSeconds / $params['sampleInterval'];
-    echo 'number of points ' + $numPoints;
+    echo 'number of points ' . $numPoints;
 
 
     for ($i = 1; $i <= $numPoints; $i++) {
