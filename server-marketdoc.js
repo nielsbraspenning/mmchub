@@ -8,17 +8,33 @@ app.use('/mmcHub/Response/Acknowledgement/v1.0', express.raw({
   limit: '5mb'
 }));
 
-app.post('/mmcHub/Response/Acknowledgement/v1.0', (req, res) => {
-  if (!req.body) {
-    console.error('❌ No body received');
-    return res.status(400).send('Missing body');
-  }
-
+app.post('/mmcHub/Response/Acknowledgement/v1.0', async (req, res) => {
   const rawXml = req.body.toString('utf8');
   fs.writeFileSync('./tennet_ack_response.xml', rawXml);
   console.log('✅ Saved raw XML');
 
-  res.status(200).send();
+  try {
+    const parsed = await xml2js.parseStringPromise(rawXml, { explicitArray: false });
+    const correlationId = parsed?.['SOAP-ENV:Envelope']?.['SOAP-ENV:Body']?.['Acknowledgement']?.['ns2:correlationId'];
+
+    const soapResponse = `
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <AcknowledgementResponse xmlns="http://sys.svc.tennet.nl/AncillaryServices/v1"
+                             xmlns:ns2="http://sys.svc.tennet.nl/MMCHub/common/v1">
+      <ns2:correlationId>${correlationId || ''}</ns2:correlationId>
+    </AcknowledgementResponse>
+  </soapenv:Body>
+</soapenv:Envelope>
+    `.trim();
+
+    res.set('Content-Type', 'text/xml');
+    res.status(200).send(soapResponse);
+  } catch (err) {
+    console.error('❌ Failed to parse XML:', err);
+    res.status(500).send('Invalid XML');
+  }
 });
 
 
