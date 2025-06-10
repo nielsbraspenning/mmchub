@@ -104,6 +104,8 @@ function generateEnergyAccountBody(array $params): DOMElement {
 
     $durationInSeconds = $end->getTimestamp() - $start->getTimestamp();
     $numPoints = $durationInSeconds / $params['sampleInterval'];
+    echo 'number of points ' + $numPoints;
+
 
     for ($i = 1; $i <= $numPoints; $i++) {
         $value = round(mt_rand(0, 999999999) / 1000000, 6);
