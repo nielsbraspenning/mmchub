@@ -13,6 +13,7 @@ app.post('/mmcHub/Response/Acknowledgement/v1.0', async (req, res) => {
   const rawXml = req.body.toString('utf8');
   fs.writeFileSync('./tennet_ack_response.xml', rawXml);
   console.log('✅ Saved raw XML');
+  console.log(rawXml);
 
   try {
     const parsed = await xml2js.parseStringPromise(rawXml, { explicitArray: false });
@@ -31,6 +32,8 @@ app.post('/mmcHub/Response/Acknowledgement/v1.0', async (req, res) => {
     `.trim();
 
     res.set('Content-Type', 'text/xml');
+    console.log("response :\r\n")
+    console.log(soapResponse)
     res.status(200).send(soapResponse);
   } catch (err) {
     console.error('❌ Failed to parse XML:', err);
