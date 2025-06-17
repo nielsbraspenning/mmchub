@@ -49,13 +49,13 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $addText($root, 'process.classificationType', 'A02');
 
     $sender = $doc->createElement('sender_MarketParticipant.mRID', $params['senderId']);
-    $sender->setAttribute('codingScheme', 'A01');
+    $sender->setAttribute('codingScheme', 'A10');
     $root->appendChild($sender);
 
     $addText($root, 'sender_MarketParticipant.marketRole.type', 'A12');
 
     $receiver = $doc->createElement('receiver_MarketParticipant.mRID', $params['receiverId']);
-    $receiver->setAttribute('codingScheme', 'A01');
+    $receiver->setAttribute('codingScheme', 'A10');
     $root->appendChild($receiver);
 
     $addText($root, 'receiver_MarketParticipant.marketRole.type', 'A04');
@@ -146,14 +146,14 @@ class TennetSoap extends SoapClient
 
         // Generate the EnergyAccount_MarketDocument content
         $bodyElement = generateEnergyAccountBody([
-            'mRID' => 'DOC-FCR-10062025-3A-0001',
+            'mRID' => 'DOC-FCR-17062025-3A-0001',
             'revisionNumber' => 1,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-06-11T14:00:00',
-            'periodStart' => '2025-06-10T00:00:00',
-            'periodEnd' => '2025-06-11T00:00:00',
-            'timeSeriesId' => 'TS-20250610-01',
+            'createdDateTime' => '2025-06-17T08:00:00',
+            'periodStart' => '2025-06-16T00:00:00',
+            'periodEnd' => '2025-06-16T00:05:00',
+            'timeSeriesId' => 'TS-20250617-01',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
             'sampleInterval' => 1
@@ -219,7 +219,7 @@ $requestBody = <<<XML
       <mRID>DUMMY-DOC-ID</mRID>
       <revisionNumber>1</revisionNumber>
       <type>A45</type>
-      <createdDateTime>2025-06-11T08:00:00Z</createdDateTime>
+      <createdDateTime>2025-06-17T08:00:00Z</createdDateTime>
     </dummy:EnergyAccount_MarketDocument>
   </soapenv:Body>
 </soapenv:Envelope>
