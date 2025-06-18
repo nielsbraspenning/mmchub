@@ -93,17 +93,18 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $period = $doc->createElement('Period');
     $ti = $doc->createElement('timeInterval');
     $ti->appendChild($doc->createElement('start', $periodStart));
-    $ti->appendChild($doc->createElement('end', $periodEnd));
+    $ti->appendChild($doc->createElement('end', $timeseriesEnd));
     $period->appendChild($ti);
 
     $period->appendChild($doc->createElement('resolution', 'PT' . $params['sampleInterval'] . 'S'));
 
  
     $start = new DateTime($params['periodStart'], new DateTimeZone('Europe/Amsterdam'));
-    $end = new DateTime($params['periodEnd'], new DateTimeZone('Europe/Amsterdam'));
+    $end = new DateTime($params['timeseriesEnd'], new DateTimeZone('Europe/Amsterdam'));
 
     $durationInSeconds = $end->getTimestamp() - $start->getTimestamp();
     $numPoints = $durationInSeconds / $params['sampleInterval'];
+    $numPoints = 100;
     echo 'number of points ' . $numPoints;
 
 
@@ -146,14 +147,15 @@ class TennetSoap extends SoapClient
 
         // Generate the EnergyAccount_MarketDocument content
         $bodyElement = generateEnergyAccountBody([
-            'mRID' => 'DOC-FCR-17062025-3A-0001',
+            'mRID' => 'DOC-FCR-18062025-3A-0001',
             'revisionNumber' => 1,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-06-17T08:00:00',
-            'periodStart' => '2025-06-16T00:00:00',
-            'periodEnd' => '2025-06-16T00:05:00',
-            'timeSeriesId' => 'TS-20250617-01',
+            'createdDateTime' => '2025-06-18T08:00:00',
+            'periodStart' => '2025-06-17T00:00:00',
+            'periodEnd' => '2025-06-18T00:00:00',
+            'timeseriesEnd' => '2025-06-17T04:00:00',
+            'timeSeriesId' => 'TS-20250618-01',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
             'sampleInterval' => 1
