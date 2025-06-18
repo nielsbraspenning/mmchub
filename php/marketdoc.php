@@ -156,7 +156,7 @@ class TennetSoap extends SoapClient
             'createdDateTime' => '2025-06-18T08:00:00',
             'periodStart' => '2025-06-17T00:00:00',
             'periodEnd' => '2025-06-18T00:00:00',
-            'timeseriesEnd' => '2025-06-17T08:00:00',
+            'timeseriesEnd' => '2025-06-18T00:00:00',
             'timeSeriesId' => 'TS-20250618-01',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
