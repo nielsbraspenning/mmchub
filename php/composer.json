@@ -1,0 +1,13 @@
+{
+    "name": "nielsbraspenning/php",
+    "require": {
+        "robrichards/xmlseclibs": "^3.1",
+        "robrichards/wse-php": "^2.0"
+    },
+    "authors": [
+        {
+            "name": "niels",
+            "email": "niels@handshake-systems.nl"
+        }
+    ]
+}
