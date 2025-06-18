@@ -68,6 +68,9 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $periodEnd = (new DateTime($params['periodEnd'], new DateTimeZone('Europe/Amsterdam')))
         ->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i\Z');
 
+    $timeseriesEnd = (new DateTime($params['timeseriesEnd'], new DateTimeZone('Europe/Amsterdam')))
+    ->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i\Z');
+
     $interval = $doc->createElement('period.timeInterval');
     $interval->appendChild($doc->createElement('start', $periodStart));
     $interval->appendChild($doc->createElement('end', $periodEnd));
