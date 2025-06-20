@@ -3,7 +3,7 @@
 
 $location = 'http://localhost:8081/AncillaryServices/EnergyAccount/v1.0';
 
-$signedXml = file_get_contents(__DIR__ . '/signed_soap.xml');
+$signedXml = file_get_contents(__DIR__ . '/test-4.xml');
 
 $client = new SoapClient(null, [
     'location' => $location,
