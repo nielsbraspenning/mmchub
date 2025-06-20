@@ -150,13 +150,13 @@ class TennetSoap extends SoapClient
         // Generate the EnergyAccount_MarketDocument content
         $bodyElement = generateEnergyAccountBody([
             'mRID' => 'DOC-FCR-20062025-6A-0003',
-            'revisionNumber' => 1,
+            'revisionNumber' => 6,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
             'createdDateTime' => '2025-06-20T08:00:00',
             'periodStart' => '2025-06-19T00:00:00',
             'periodEnd' => '2025-06-20T00:00:00',
-            'timeseriesEnd' => '2025-06-19T04:00:00',
+            'timeseriesEnd' => '2025-06-19T24:00:00',
             'timeSeriesId' => 'TS-20250619-AA',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
