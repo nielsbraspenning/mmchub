@@ -92,38 +92,56 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $mep = $doc->createElement('marketEvaluationPoint.mRID', $params['marketEvaluationPointId']);
     $mep->setAttribute('codingScheme', 'A01');
     $ts->appendChild($mep);
-
-    $period = $doc->createElement('Period');
-    $ti = $doc->createElement('timeInterval');
-    $ti->appendChild($doc->createElement('start', $periodStart));
-    $ti->appendChild($doc->createElement('end', $timeseriesEnd));
-    $period->appendChild($ti);
-
-    $period->appendChild($doc->createElement('resolution', 'PT' . $params['sampleInterval'] . 'S'));
-
- 
+//==
     $start = new DateTime($params['periodStart'], new DateTimeZone('Europe/Amsterdam'));
     $end = new DateTime($params['timeseriesEnd'], new DateTimeZone('Europe/Amsterdam'));
+    $sampleInterval = $params['sampleInterval'];
 
-    $durationInSeconds = $end->getTimestamp() - $start->getTimestamp();
-    $numPoints = $durationInSeconds / $params['sampleInterval'];
-    echo 'number of points ' . $numPoints;
+    $blockStart = clone $start;
+    while ($blockStart < $end) {
+        $blockEnd = clone $blockStart;
+        $blockEnd->modify('+4 hours');
+        if ($blockEnd > $end) {
+            $blockEnd = clone $end;
+        }
 
+        $period = $doc->createElement('Period');
 
-    for ($i = 1; $i <= $numPoints; $i++) {
-   
-        $value = round(mt_rand(0, 999999999) / 1000000, 6);
-        $point = $doc->createElement('Point');
-        $addText($point, 'position', $i);
-        $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
-        $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
-        $period->appendChild($point);
+        $ti = $doc->createElement('timeInterval');
+
+        $blockStartUTC = clone $blockStart;
+        $blockEndUTC = clone $blockEnd;
+        $blockStartUTC->setTimezone(new DateTimeZone('UTC'));
+        $blockEndUTC->setTimezone(new DateTimeZone('UTC'));
+
+        $ti->appendChild($doc->createElement('start', $blockStartUTC->format('Y-m-d\TH:i\Z')));
+        $ti->appendChild($doc->createElement('end', $blockEndUTC->format('Y-m-d\TH:i\Z')));
+
+        
+
+        $period->appendChild($ti);
+
+        $period->appendChild($doc->createElement('resolution', 'PT' . $sampleInterval . 'S'));
+
+        $pointsInBlock = ($blockEnd->getTimestamp() - $blockStart->getTimestamp()) / $sampleInterval;
+        $position = 1;
+
+        for ($i = 0; $i < $pointsInBlock; $i++, $position++) {
+            $value = round(mt_rand(0, 999999999) / 1000000, 6);
+            $point = $doc->createElement('Point');
+            $addText($point, 'position', $position);
+            $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
+            $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
+            $period->appendChild($point);
+        }
+
+        $ts->appendChild($period);
+        $blockStart = $blockEnd;
     }
-    echo 'generating points finished' ;
 
+ 
 
-
-    $ts->appendChild($period);
+    //===
     $root->appendChild($ts);
 
     return $doc->documentElement;
@@ -156,7 +174,7 @@ class TennetSoap extends SoapClient
             'createdDateTime' => '2025-06-20T07:30:00',
             'periodStart' => '2025-06-19T00:00:00',
             'periodEnd' => '2025-06-20T00:00:00',
-            'timeseriesEnd' => '2025-06-19T04:00:00',
+            'timeseriesEnd' => '2025-06-19T08:00:00',
             'timeSeriesId' => 'TS-20250619-01',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',

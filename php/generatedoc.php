@@ -23,7 +23,6 @@ function generateUUIDv4(): string {
 }
 
 
-
 function generateEnergyAccountBody(array $params): DOMElement {
     $doc = new DOMDocument('1.0', 'UTF-8');
     $doc->formatOutput = true;
@@ -51,29 +50,22 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $sender = $doc->createElement('sender_MarketParticipant.mRID', $params['senderId']);
     $sender->setAttribute('codingScheme', 'A10');
     $root->appendChild($sender);
-
     $addText($root, 'sender_MarketParticipant.marketRole.type', 'A12');
 
     $receiver = $doc->createElement('receiver_MarketParticipant.mRID', $params['receiverId']);
     $receiver->setAttribute('codingScheme', 'A10');
     $root->appendChild($receiver);
-
     $addText($root, 'receiver_MarketParticipant.marketRole.type', 'A04');
 
     $created = new DateTime($params['createdDateTime'], new DateTimeZone('Europe/Amsterdam'));
     $addText($root, 'createdDateTime', $created->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z'));
 
-    $periodStart = (new DateTime($params['periodStart'], new DateTimeZone('Europe/Amsterdam')))
-        ->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i\Z');
-    $periodEnd = (new DateTime($params['periodEnd'], new DateTimeZone('Europe/Amsterdam')))
-        ->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i\Z');
-
-    $timeseriesEnd = (new DateTime($params['timeseriesEnd'], new DateTimeZone('Europe/Amsterdam')))
-    ->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d\TH:i\Z');
+    $periodStart = new DateTime($params['periodStart'], new DateTimeZone('Europe/Amsterdam'));
+    $periodEnd = new DateTime($params['periodEnd'], new DateTimeZone('Europe/Amsterdam'));
 
     $interval = $doc->createElement('period.timeInterval');
-    $interval->appendChild($doc->createElement('start', $periodStart));
-    $interval->appendChild($doc->createElement('end', $periodEnd));
+    $interval->appendChild($doc->createElement('start', $periodStart->format('Y-m-d\TH:i\Z')));
+    $interval->appendChild($doc->createElement('end', $periodEnd->format('Y-m-d\TH:i\Z')));
     $root->appendChild($interval);
 
     $ts = $doc->createElement('TimeSeries');
@@ -93,41 +85,51 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $mep->setAttribute('codingScheme', 'A01');
     $ts->appendChild($mep);
 
-    $period = $doc->createElement('Period');
-    $ti = $doc->createElement('timeInterval');
-    $ti->appendChild($doc->createElement('start', $periodStart));
-    $ti->appendChild($doc->createElement('end', $timeseriesEnd));
-    $period->appendChild($ti);
-
-    $period->appendChild($doc->createElement('resolution', 'PT' . $params['sampleInterval'] . 'S'));
-
- 
-    $start = new DateTime($params['periodStart'], new DateTimeZone('Europe/Amsterdam'));
+    $sampleInterval = $params['sampleInterval'];
+    $blockStart = clone $periodStart;
     $end = new DateTime($params['timeseriesEnd'], new DateTimeZone('Europe/Amsterdam'));
 
-    $durationInSeconds = $end->getTimestamp() - $start->getTimestamp();
-    $numPoints = $durationInSeconds / $params['sampleInterval'];
-    echo 'number of points ' . $numPoints;
+    while ($blockStart < $end) {
+        $blockEnd = clone $blockStart;
+        $blockEnd->modify('+4 hours');
+        if ($blockEnd > $end) {
+            $blockEnd = clone $end;
+        }
 
+        $period = $doc->createElement('Period');
+        $ti = $doc->createElement('timeInterval');
 
-    for ($i = 1; $i <= $numPoints; $i++) {
-   
-        $value = round(mt_rand(0, 999999999) / 1000000, 6);
-        $point = $doc->createElement('Point');
-        $addText($point, 'position', $i);
-        $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
-        $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
-        $period->appendChild($point);
+        $blockStartUTC = clone $blockStart;
+        $blockEndUTC = clone $blockEnd;
+        $blockStartUTC->setTimezone(new DateTimeZone('UTC'));
+        $blockEndUTC->setTimezone(new DateTimeZone('UTC'));
+
+        $ti->appendChild($doc->createElement('start', $blockStartUTC->format('Y-m-d\TH:i\Z')));
+        $ti->appendChild($doc->createElement('end', $blockEndUTC->format('Y-m-d\TH:i\Z')));
+        $period->appendChild($ti);
+        $period->appendChild($doc->createElement('resolution', 'PT' . $sampleInterval . 'S'));
+
+        $points = ($blockEnd->getTimestamp() - $blockStart->getTimestamp()) / $sampleInterval;
+        for ($i = 1; $i <= $points; $i++) {
+            $value = round(mt_rand(0, 999999999) / 1000000, 6);
+            $point = $doc->createElement('Point');
+            $addText($point, 'position', $i);
+            $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
+            $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
+            $period->appendChild($point);
+        }
+
+        $ts->appendChild($period);
+        $blockStart = $blockEnd;
     }
-    echo 'generating points finished' ;
 
-
-
-    $ts->appendChild($period);
     $root->appendChild($ts);
-
     return $doc->documentElement;
 }
+
+
+
+
 
 // === Minimal SoapClient subclass with only signing ===
 class TennetSoap extends SoapClient
@@ -149,15 +151,15 @@ class TennetSoap extends SoapClient
 
         // Generate the EnergyAccount_MarketDocument content
         $bodyElement = generateEnergyAccountBody([
-            'mRID' => 'DOC-FCR-20062025-6A-0003',
-            'revisionNumber' => 6,
+            'mRID' => 'DOC-FCR-27062025-1A-0001',
+            'revisionNumber' => 2,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-06-20T08:00:18',
-            'periodStart' => '2025-06-19T00:00:00',
-            'periodEnd' => '2025-06-20T00:00:00',
-            'timeseriesEnd' => '2025-06-19T24:00:00',
-            'timeSeriesId' => 'TS-20250619-AA',
+            'createdDateTime' => '2025-06-28T08:01:18',
+            'periodStart' => '2025-06-27T00:00:00',
+            'periodEnd' => '2025-06-28T00:00:00',
+            'timeseriesEnd' => '2025-06-27T08:00:00',
+            'timeSeriesId' => 'TS-20250627-AA',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
             'sampleInterval' => 1
