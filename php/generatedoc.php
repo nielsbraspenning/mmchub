@@ -158,7 +158,7 @@ class TennetSoap extends SoapClient
             'revisionNumber' => 2,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-06-27T08:00:00',
+            'createdDateTime' => '2025-06-27T07:32:00',
             'periodStart' => '2025-06-26T00:00:00',
             'periodEnd' => '2025-06-27T00:00:00',
             'timeseriesEnd' => '2025-06-26T24:00:00',
