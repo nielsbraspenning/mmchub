@@ -190,33 +190,50 @@ class WSSESoap
         return $token;
     }
 
-    public function attachTokentoSig($token)
+    public function attachTokentoSig($token, $objKey)
     {
         if (!($token instanceof DOMElement)) {
             throw new Exception('Invalid parameter: BinarySecurityToken element expected');
         }
+
         $objXMLSecDSig = new XMLSecurityDSig();
+
         if ($objDSig = $objXMLSecDSig->locateSignature($this->soapDoc)) {
-            $tokenURI = '#'.$token->getAttributeNS(self::WSUNS, 'Id');
             $this->SOAPXPath->registerNamespace('secdsig', XMLSecurityDSig::XMLDSIGNS);
-            $query = './secdsig:KeyInfo';
-            $nodeset = $this->SOAPXPath->query($query, $objDSig);
+            $nodeset = $this->SOAPXPath->query('./secdsig:KeyInfo', $objDSig);
             $keyInfo = $nodeset->item(0);
+
             if (!$keyInfo) {
                 $keyInfo = $objXMLSecDSig->createNewSignNode('KeyInfo');
                 $objDSig->appendChild($keyInfo);
             }
 
-            $tokenRef = $this->soapDoc->createElementNS(self::WSSENS, self::WSSEPFX.':SecurityTokenReference');
+            // Add <wsse:SecurityTokenReference>
+            $tokenRef = $this->soapDoc->createElementNS(self::WSSENS, self::WSSEPFX . ':SecurityTokenReference');
             $keyInfo->appendChild($tokenRef);
-            $reference = $this->soapDoc->createElementNS(self::WSSENS, self::WSSEPFX.':Reference');
-            $reference->setAttribute('ValueType', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3');
-            $reference->setAttribute('URI', $tokenURI);
+
+            // Add <wsse:KeyIdentifier>
+            $reference = $this->soapDoc->createElementNS(self::WSSENS, self::WSSEPFX . ':KeyIdentifier');
+            $reference->setAttribute('ValueType', 'http://docs.oasis-open.org/wss/oasis-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier');
+            $reference->setAttribute('EncodingType', 'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary');
+
+            $x509 = openssl_x509_parse($objKey->getX509Certificate());
+            $keyid = $x509['extensions']['subjectKeyIdentifier'];
+            $arkeyid = explode(':', $keyid);
+            $data = '';
+            foreach ($arkeyid as $hexchar) {
+                $data .= chr(hexdec($hexchar));
+            }
+
+            $dataNode = new DOMText(base64_encode($data));
+            $reference->appendChild($dataNode);
             $tokenRef->appendChild($reference);
+
         } else {
             throw new Exception('Unable to locate digital signature');
         }
     }
+
 
     public function signSoapDoc($objKey, $options = null)
     {

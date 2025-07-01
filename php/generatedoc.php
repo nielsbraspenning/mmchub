@@ -215,6 +215,7 @@ function generateEnergyAccountBody(array $params): DOMElement {
 // === Minimal SoapClient subclass with only signing ===
 class TennetSoap extends SoapClient
 {
+
     private $signingCert;
     private $signingPk;
 
@@ -247,15 +248,15 @@ class TennetSoap extends SoapClient
         //]);
 
         $bodyElement = generateEnergyAccountBody([          //WINTER-ZOMER
-            'mRID' => 'DOC-FCR-30032025-1A-001',
+            'mRID' => 'DOC-FCR-05072025-1A-001',
             'revisionNumber' => 1,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-03-31T07:32:00',             //LOCAL TIME
-            'periodStart' => '2025-03-30T00:00:00',                 //local
-            'periodEnd' => '2025-03-31T00:00:00',                   //local
-            'timeseriesEnd' => '2025-03-30T24:00:00',               //local
-            'timeSeriesId' => 'TS-20250330-CC',
+            'createdDateTime' => '2025-07-06T07:32:00',             //LOCAL TIME
+            'periodStart' => '2025-07-05T00:00:00',                 //local
+            'periodEnd' => '2025-07-06T00:00:00',                   //local
+            'timeseriesEnd' => '2025-07-05T04:00:00',               //local
+            'timeSeriesId' => 'TS-20250705-CC',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
             'sampleInterval' => 1
@@ -277,17 +278,44 @@ class TennetSoap extends SoapClient
           echo 'do we end up here 1';
         $bodyNode->appendChild($importedBody);
 
-        // Sign
         $wsse = new WSSESoap($doc);
+        $wsse->addTimestamp();
+
         $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
         $key->loadKey($this->signingPk, true);
+        $key->setX509Certificate(file_get_contents($this->signingCert));
+
+        // Step 1: Add BinarySecurityToken
+        $token = $wsse->addBinaryToken($key->getX509Certificate());
+
+        // Step 2: Sign
+        $wsse->signSoapDoc($key, [
+            'insertBefore' => true
+        ]);
+
+        // Step 3: Attach token to signature (now it exists)
+        $wsse->attachTokentoSig($token, $key);
+
+
+
+   
 
         
-        $wsse->signSoapDoc($key);
+        //$wsse->signSoapDoc($key);
+        //$wsse->signSoapDoc($key, [
+        //    'KeyInfo' => [
+        //    'X509SubjectKeyIdentifier' => true
+        //    ]
+        //]);
 
 
-        $token = $wsse->addBinaryToken(file_get_contents($this->signingCert));
-        $wsse->attachTokentoSig($token);
+
+        //ski test eng
+
+
+    //    $token = $wsse->addBinaryToken(file_get_contents($this->signingCert));
+
+    //    $wsse->attachTokentoSig($token);
 
           echo 'do we end up here 2';
         // Output

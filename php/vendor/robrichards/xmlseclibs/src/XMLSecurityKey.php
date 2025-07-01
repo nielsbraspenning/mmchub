@@ -810,4 +810,14 @@ class XMLSecurityKey
         return $objKey;
     }
 
+    /**
+        * Explicitly set the X509 certificate content (PEM format).
+        *
+        * @param string $cert
+        * @return void
+    */
+    public function setX509Certificate($cert)
+    {
+        $this->x509Certificate = $cert;
+    }
 }
