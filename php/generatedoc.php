@@ -248,7 +248,7 @@ class TennetSoap extends SoapClient
 
         $bodyElement = generateEnergyAccountBody([          //WINTER-ZOMER
             'mRID' => 'DOC-FCR-30032025-1A-001',
-            'revisionNumber' => 1,
+            'revisionNumber' => 11,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
             'createdDateTime' => '2025-03-31T07:32:00',             //LOCAL TIME
