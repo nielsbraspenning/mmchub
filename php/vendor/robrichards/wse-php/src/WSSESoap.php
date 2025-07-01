@@ -277,10 +277,17 @@ class WSSESoap
             }
         }
 
-        $algorithm = XMLSecurityDSig::SHA1;
+        /*$algorithm = XMLSecurityDSig::SHA1;
+        if (is_array($options) && isset($options['algorithm'])) {
+            $algorithm = $options['algorithm'];
+        }*/
+
+        // Force SHA-256 as default digest algorithm
+        $algorithm = XMLSecurityDSig::SHA256;
         if (is_array($options) && isset($options['algorithm'])) {
             $algorithm = $options['algorithm'];
         }
+
 
         $arOptions = array('prefix' => self::WSUPFX, 'prefix_ns' => self::WSUNS);
         $objDSig->addReferenceList($arNodes, $algorithm, null, $arOptions);

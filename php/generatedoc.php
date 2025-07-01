@@ -281,7 +281,11 @@ class TennetSoap extends SoapClient
         $wsse = new WSSESoap($doc);
         $key = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, ['type' => 'private']);
         $key->loadKey($this->signingPk, true);
+
+        
         $wsse->signSoapDoc($key);
+
+
         $token = $wsse->addBinaryToken(file_get_contents($this->signingCert));
         $wsse->attachTokentoSig($token);
 
