@@ -167,15 +167,15 @@ class TennetSoap extends SoapClient
 
         // Generate the EnergyAccount_MarketDocument content
         $bodyElement = generateEnergyAccountBody([
-            'mRID' => 'DOC-FCR-20062025-4A-0003',
+            'mRID' => 'DOC-FCR-10072025-4A-0003',
             'revisionNumber' => 1,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-06-20T07:30:00',
-            'periodStart' => '2025-06-19T00:00:00',
-            'periodEnd' => '2025-06-20T00:00:00',
-            'timeseriesEnd' => '2025-06-19T08:00:00',
-            'timeSeriesId' => 'TS-20250619-01',
+            'createdDateTime' => '2025-07-11T07:30:00',
+            'periodStart' => '2025-07-10T00:00:00',
+            'periodEnd' => '2025-07-11T00:00:00',
+            'timeseriesEnd' => '2025-07-10T04:00:00',
+            'timeSeriesId' => 'TS-20250710-01',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
             'sampleInterval' => 1
