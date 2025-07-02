@@ -88,75 +88,72 @@ function generateEnergyAccountBody(array $params): DOMElement {
     $mep->setAttribute('codingScheme', 'A01');
     $ts->appendChild($mep);
 
-    $sampleInterval = $params['sampleInterval'];
-    $blockStart = clone $periodStart;
-    $end = new DateTime($params['timeseriesEnd'], new DateTimeZone('Europe/Amsterdam'));
+     //generate correct block, but without xml
+    $timezone = new DateTimeZone('Europe/Amsterdam');
 
-    //past al test execpt summer/winter transitions
-   // while ($blockStart < $end) {
-   //     $blockEnd = clone $blockStart;
-   //     $blockEnd->modify('+4 hours');
-   //     if ($blockEnd > $end) {
-   //         $blockEnd = clone $end;
-   //     }
-//
-   //     $period = $doc->createElement('Period');
-   //     $ti = $doc->createElement('timeInterval');
-//
-   //     $blockStartUTC = clone $blockStart;
-   //     $blockEndUTC = clone $blockEnd;
-   //     $blockStartUTC->setTimezone(new DateTimeZone('UTC'));
-   //     $blockEndUTC->setTimezone(new DateTimeZone('UTC'));
-//
-   //     $ti->appendChild($doc->createElement('start', $blockStartUTC->format('Y-m-d\TH:i\Z')));
-   //     $ti->appendChild($doc->createElement('end', $blockEndUTC->format('Y-m-d\TH:i\Z')));
-   //     $period->appendChild($ti);
-   //     $period->appendChild($doc->createElement('resolution', 'PT' . $sampleInterval . 'S'));
-//
-   //     $points = ($blockEnd->getTimestamp() - $blockStart->getTimestamp()) / $sampleInterval;
-   //     for ($i = 1; $i <= $points; $i++) {
-   //         $value = round(mt_rand(0, 999999999) / 1000000, 6);
-   //         $point = $doc->createElement('Point');
-   //         $addText($point, 'position', $i);
-   //         $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
-   //         $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
-   //         $period->appendChild($point);
-   //     }
-//
-   //     $ts->appendChild($period);
-   //     $blockStart = $blockEnd;
-   // }
-   $startTs = $blockStart->getTimestamp();
-$endTs = $end->getTimestamp();
+    //// Your local start and end time strings
+    $start = new DateTime($params['periodStart'], $timezone);
+    $end = new DateTime($params['timeseriesEnd'], $timezone); // or any later time
+    $sampleInterval = (int)$params['sampleInterval'];
 
-while ($startTs < $endTs) {
-    $blockEndTs = min($startTs + 4 * 3600, $endTs);
+    $blockStart = clone $start;
 
-    $period = $doc->createElement('Period');
-    $ti = $doc->createElement('timeInterval');
+    while ($blockStart < $end) {
+        $blockEnd = clone $blockStart;
+        $blockEnd->modify('+4 hours');
 
-    $startDT = (new DateTime())->setTimestamp($startTs)->setTimezone(new DateTimeZone('UTC'));
-    $endDT = (new DateTime())->setTimestamp($blockEndTs)->setTimezone(new DateTimeZone('UTC'));
+        // Clamp to end if we overshoot
+        if ($blockEnd > $end) {
+            $blockEnd = clone $end;
+        }
 
-    $ti->appendChild($doc->createElement('start', $startDT->format('Y-m-d\TH:i\Z')));
-    $ti->appendChild($doc->createElement('end', $endDT->format('Y-m-d\TH:i\Z')));
-    $period->appendChild($ti);
-    $period->appendChild($doc->createElement('resolution', 'PT' . $sampleInterval . 'S'));
+        // Clone and convert to UTC
+        $blockStartUtc = clone $blockStart;
+        $blockStartUtc->setTimezone(new DateTimeZone('UTC'));
 
-    $points = ($blockEndTs - $startTs) / $sampleInterval;
+        $blockEndUtc = clone $blockEnd;
+        $blockEndUtc->setTimezone(new DateTimeZone('UTC'));
 
-    for ($i = 1; $i <= $points; $i++) {
-        $value = round(mt_rand(0, 999999999) / 1000000, 6);
-        $point = $doc->createElement('Point');
-        $addText($point, 'position', $i);
-        $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
-        $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
-        $period->appendChild($point);
+        $realHours = round(($blockEnd->getTimestamp() - $blockStart->getTimestamp()) / 3600, 2);
+
+        $period = $doc->createElement('Period');
+        $ti = $doc->createElement('timeInterval');
+        $ti->appendChild($doc->createElement('start', $blockStartUtc->format('Y-m-d\TH:i\Z')));
+        $ti->appendChild($doc->createElement('end', $blockEndUtc->format('Y-m-d\TH:i\Z')));
+        $period->appendChild($ti);
+
+        // Add resolution
+        $period->appendChild($doc->createElement('resolution', 'PT' . $sampleInterval . 'S'));
+
+        $durationInSeconds = $realHours * 3600;
+        $points = floor($durationInSeconds / $sampleInterval);
+
+        for ($i = 1; $i <= $points; $i++) {
+            $value = round(mt_rand(0, 999999999) / 1000000, 6);
+            $point = $doc->createElement('Point');
+
+            $addText($point, 'position', $i);
+            $addText($point, 'in_Quantity.quantity', $value >= 0 ? '0.000000' : number_format(abs($value), 6, '.', ''));
+            $addText($point, 'out_Quantity.quantity', $value >= 0 ? number_format($value, 6, '.', '') : '0.000000');
+
+            $period->appendChild($point);
+        }
+
+        // Print local block
+        echo "Block: " .
+            $blockStart->format('Y-m-d H:i:s T') . " → " .
+            $blockEnd->format('Y-m-d H:i:s T') . " ($realHours real hours)\n";
+
+        // Print corresponding UTC block
+        echo "       " .
+            $blockStartUtc->format('Y-m-d H:i:s T') . " → " .
+            $blockEndUtc->format('Y-m-d H:i:s T') . "\n";
+        
+        $ts->appendChild($period);
+        $blockStart = clone $blockEnd;
     }
 
-    $ts->appendChild($period);
-    $startTs = $blockEndTs;
-}
+
 
     $root->appendChild($ts);
     return $doc->documentElement;
@@ -186,15 +183,15 @@ class TennetSoap extends SoapClient
 
         // Generate the EnergyAccount_MarketDocument content
         $bodyElement = generateEnergyAccountBody([
-            'mRID' => 'DOC-FCR-30032025-1A-001',
-            'revisionNumber' => 1,
+            'mRID' => 'DOC-FCR-26062025-1A-001',
+            'revisionNumber' => 2,
             'senderId' => '8719333027500',
             'receiverId' => '8716867999983',
-            'createdDateTime' => '2025-03-31T07:32:00',
-            'periodStart' => '2025-03-30T00:00:00',
-            'periodEnd' => '2025-03-31T00:00:00',
-            'timeseriesEnd' => '2025-03-30T24:00:00',
-            'timeSeriesId' => 'TS-20250330-CC',
+            'createdDateTime' => '2025-06-27T07:32:00',
+            'periodStart' => '2025-06-26T00:00:00',
+            'periodEnd' => '2025-06-27T00:00:00',
+            'timeseriesEnd' => '2025-06-26T04:00:00',
+            'timeSeriesId' => 'TS-20250626-CC',
             'product' => '8716867000016',
             'marketEvaluationPointId' => '871687910000500037',
             'sampleInterval' => 1
