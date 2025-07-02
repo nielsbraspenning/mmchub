@@ -221,48 +221,48 @@ class TennetSoap extends SoapClient
         $wsse->signSoapDoc($key);
 
         //lines for binary security token
-      //  $token = $wsse->addBinaryToken(file_get_contents($this->signingCert));
-      //  $wsse->attachTokentoSig($token);
+        $token = $wsse->addBinaryToken(file_get_contents($this->signingCert));
+        $wsse->attachTokentoSig($token);
 
         //lines for manually adding ski
 
         // Remove existing KeyInfo
       // 👉 Haal DOMDocument via de juiste manier
       // Gebruik reflection om toegang te krijgen tot protected $soapDoc
-        $reflection = new ReflectionClass($wsse);
-        $property = $reflection->getProperty('soapDoc');
-        $property->setAccessible(true);
-    $doc = $property->getValue($wsse);
-  
-
-    // 👉 Verwijder bestaande <ds:KeyInfo> als aanwezig
-    $signature = $doc->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'Signature')->item(0);
-    $keyInfoNode = $signature->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'KeyInfo')->item(0);
-
-    if ($keyInfoNode) {
-        $signature->removeChild($keyInfoNode);
-    }
-
-    $ski = extractSKIfromCert($this->signingCert);
-
-    // 👉 Bouw nieuwe <ds:KeyInfo> met <wsse:KeyIdentifier>
-    $keyInfo = $doc->createElementNS(XMLSecurityDSig::XMLDSIGNS, 'ds:KeyInfo');
-    $securityTokenRef = $doc->createElementNS(WSSESoap::WSUNS, 'wsse:SecurityTokenReference');
-    $keyIdentifier = $doc->createElementNS(WSSESoap::WSUNS, 'wsse:KeyIdentifier', $ski);
-
-    $keyIdentifier->setAttribute(
-        'ValueType',
-        'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier'
-    );
-
-    $keyIdentifier->setAttribute(
-        'EncodingType',
-        'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary'
-    );
-
-    $securityTokenRef->appendChild($keyIdentifier);
-    $keyInfo->appendChild($securityTokenRef);
-    $signature->appendChild($keyInfo);
+ //    $property = $reflection->getProperty('soapDoc');
+//      $reflection = new ReflectionClass($wsse);
+//        $property->setAccessible(true);
+//    $doc = $property->getValue($wsse);
+//  
+//    // 👉 Verwijder bestaande <ds:KeyInfo> als aanwezig
+//    $signature = $doc->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'Signature')->item(0);
+//
+//    $keyInfoNode = $signature->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'KeyInfo')->item(0);
+//    if ($keyInfoNode) {
+//    $signature->removeChild($keyInfoNode);
+//
+//    }
+//    $ski = extractSKIfromCert($this->signingCert);
+//    
+//    // 👉 Bouw nieuwe <ds:KeyInfo> met <wsse:KeyIdentifier>
+//    $keyInfo = $doc->createElementNS(XMLSecurityDSig::XMLDSIGNS, 'ds:KeyInfo');
+//
+//    $securityTokenRef = $doc->createElementNS(WSSESoap::WSUNS, 'wsse:SecurityTokenReference');
+//    $keyIdentifier = $doc->createElementNS(WSSESoap::WSUNS, 'wsse:KeyIdentifier', $ski);
+//
+//    $keyIdentifier->setAttribute(
+//        'ValueType',
+//        'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509SubjectKeyIdentifier'
+//    );
+//
+//    $keyIdentifier->setAttribute(
+//        'EncodingType',
+//        'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary'
+//    );
+//
+//    $securityTokenRef->appendChild($keyIdentifier);
+//    $keyInfo->appendChild($securityTokenRef);
+//    $signature->appendChild($keyInfo);
 
 
           echo 'do we end up here 2';
