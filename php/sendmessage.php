@@ -4,7 +4,7 @@
 $location = 'http://localhost:8081/AncillaryServices/EnergyAccount/v1.0';
 $soapAction = 'http://sys.svc.tennet.nl/AncillaryServices/sendEnergyAccount';
 
-$signedXml = file_get_contents(__DIR__ . '/signed_soap_sha256.xml');
+$signedXml = file_get_contents(__DIR__ . '/new_attempt.xml');
 
 $client = new SoapClient(null, [
     'location' => $location,

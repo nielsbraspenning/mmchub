@@ -297,24 +297,8 @@ class WSSESoap
         if (is_array($options)) {
             if (!empty($options['KeyInfo'])) {
                 if (!empty($options['KeyInfo']['X509SubjectKeyIdentifier'])) {
-                    
-                    $sigNode = $this->secNode->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'Signature')->item(0);
-                    if (!$sigNode) {
-                        throw new Exception("Signature node not found in secNode");
-                    }
-
-                    $sigNodeList = $this->secNode->getElementsByTagNameNS(XMLSecurityDSig::XMLDSIGNS, 'Signature');
-                    $sigNode = $sigNodeList->item(0);
-
-                    if (!$sigNode) {
-                        throw new \Exception("Signature node not found in WSSE security header.");
-                    }
-
+                    $sigNode = $this->secNode->firstChild->nextSibling;
                     $objDoc = $sigNode->ownerDocument;
-
-
-                    //$sigNode = $this->secNode->firstChild->nextSibling;
-                    //$objDoc = $sigNode->ownerDocument;
                     $keyInfo = $sigNode->ownerDocument->createElementNS(XMLSecurityDSig::XMLDSIGNS, 'ds:KeyInfo');
                     $sigNode->appendChild($keyInfo);
                     $tokenRef = $objDoc->createElementNS(self::WSSENS, self::WSSEPFX.':SecurityTokenReference');
@@ -325,7 +309,6 @@ class WSSESoap
                     $tokenRef->appendChild($reference);
                     $x509 = openssl_x509_parse($objKey->getX509Certificate());
                     $keyid = $x509['extensions']['subjectKeyIdentifier'];
-                    $keyid = 'B8:13:62:2A:C7:A9:39:D9:C4:A1:CC:5D:6D:C6:0F:A1:F3:F0:8B:C4';
                     $arkeyid = explode(':', $keyid);
                     $data = '';
                     foreach ($arkeyid as $hexchar) {
