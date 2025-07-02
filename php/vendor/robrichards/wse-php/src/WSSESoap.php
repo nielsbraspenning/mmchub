@@ -277,7 +277,7 @@ class WSSESoap
             }
         }
 
-        $algorithm = XMLSecurityDSig::SHA1;
+        $algorithm = XMLSecurityDSig::SHA256;
         if (is_array($options) && isset($options['algorithm'])) {
             $algorithm = $options['algorithm'];
         }
